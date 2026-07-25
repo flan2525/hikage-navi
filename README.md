@@ -1,22 +1,50 @@
 # 日陰ナビ
 
-広島駅・八丁堀・紙屋町・本通・平和記念公園を対象に、日陰を優先する徒歩経路を検討するWebアプリの実証版。
+広島駅・八丁堀・紙屋町・本通・平和記念公園を対象に、短距離だけでなく建物による推定日陰を考慮して徒歩経路を比較するWebアプリの実証版。
 
-## 技術構成と起動
+## 技術構成
 
-React / TypeScript / Vite / MapLibre GL JS / Cloudflare Pages Functions。Node.js 20以上で、`npm install`、`npm run dev`。品質確認は`npm run lint`、`npm run test`、`npm run build`。
+React / TypeScript / Vite / MapLibre GL JS / SunCalc / Cloudflare Pages Functions。SSRは使わず、ビルド出力は`dist`。
 
-Cloudflare PagesはProduction branchを`main`、Build commandを`npm run build`、Build output directoryを`dist`にする。Pages Functionsで実経路を使うには`OPENROUTESERVICE_API_KEY`をCloudflareのSecretとして設定する（`.env.example`参照）。キーはクライアントに送らない。
+## セットアップ
 
-## データとAPI
+Node.js 20以上で次を実行する。
 
-- 気象: [Open-Meteo](https://open-meteo.com/en/docs)から現在の気温・体感温度・湿度・風速・日射と時間別予報を取得。
-- 徒歩経路: OpenRouteServiceの`foot-walking`を同一オリジンのPages Functionが代理取得。利用規約・クォータは導入前と運用時に[OpenRouteServiceの公式ページ](https://openrouteservice.org/)で確認し、APIキーのプラン上限に合わせる。
-- 背景地図: [OpenFreeMap](https://openfreemap.org/)のスタイルをMapLibreで表示。地図内の帰属表記を常時表示する。
-- 建物: PLATEAU導入計画は[docs/plateau-data-plan.md](docs/plateau-data-plan.md)。
+```bash
+npm install
+npm run dev
+```
+
+環境変数は`.env.example`を参照する。ローカルでは`OPENROUTESERVICE_API_KEY`を必要に応じて設定し、Cloudflare PagesではSecretとして設定する。キーをクライアントやGitに含めない。
+
+## 確認コマンド
+
+```bash
+npm run lint
+npm run test
+npm run test:plateau
+npm run build
+```
+
+## Cloudflare Pages
+
+- Production branch: `main`
+- Build command: `npm run build`
+- Build output directory: `dist`
+
+## 使用API・データ
+
+- 気象: [Open-Meteo](https://open-meteo.com/en/docs)（現在気温、体感温度、湿度、風速、日射、時間別予報）
+- 徒歩経路: OpenRouteServiceの`foot-walking`をPages Functionが代理取得。運用時は[利用条件・クォータ](https://openrouteservice.org/)を確認する。
+- 背景地図: [OpenFreeMap](https://openfreemap.org/)。地図上の帰属表記を維持する。
+- 建物: PLATEAU広島市2024年度・仕様4.1、CityGML 2.0。広島駅〜平和記念公園の約350m周辺だけを3,521棟のGeoJSONに変換している。詳細は[変換手順](docs/plateau-conversion.md)と[利用計画](docs/plateau-data-plan.md)。
+
+PLATEAUデータの原著作権は整備主体に帰属する。利用時は[PLATEAUのデータ利用条件](https://www.mlit.go.jp/plateau/faq/)と公式出典表記を確認する。
 
 ## 現在の制限
 
-OpenRouteService未設定・失敗時は画面に明示した「実証用サンプル経路」へ切り替える。建物は日陰計算機構を試すためのサンプルで、PLATEAU由来ではない。街路樹や現地状況は未反映。詳細は[docs/shade-calculation.md](docs/shade-calculation.md)。
+日陰率は建物データからの推定値であり、街路樹、地形、屋根、道路の高低差、アーケード、現地状況は未反映。PLATEAUデータが読めない時だけ明示して小規模な実証用建物へ切り替える。涼しさ・安全・熱中症の回避は保証しない。計算方法は[shade-calculation.md](docs/shade-calculation.md)。開発・現地検証時は`?debug=shade`で太陽値、影、サンプル分類、処理時間、建物クリック情報、検証JSONを利用できる。詳細は[shade-validation.md](docs/shade-validation.md)。
 
-次はPLATEAUの対象区域データを正式に抽出し、アーケード・クールスポットの一次情報を整備して、日陰率を実データで検証する。
+## 今後
+
+本通アーケードなどの常時日陰、街路樹・クーリングスポットの一次情報、現地観測による影判定の精度検証、広域化時のPMTiles/ベクタータイル化を進める。

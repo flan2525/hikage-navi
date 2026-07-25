@@ -1,6 +1,7 @@
 import type { Position } from '../types'
 const R = 6_371_000
 const toRad = (value: number) => value * Math.PI / 180
+const toDeg = (value: number) => value * 180 / Math.PI
 
 export function distanceMeters(a: Position, b: Position): number {
   const dLat = toRad(b.lat - a.lat); const dLng = toRad(b.lng - a.lng)
@@ -8,6 +9,15 @@ export function distanceMeters(a: Position, b: Position): number {
   return 2 * R * Math.asin(Math.sqrt(h))
 }
 export function interpolate(a: Position, b: Position, fraction: number): Position { return { lng: a.lng + (b.lng - a.lng) * fraction, lat: a.lat + (b.lat - a.lat) * fraction } }
+export function destinationPoint(origin: Position, bearingDegrees: number, distanceMetersValue: number): Position {
+  const angularDistance = distanceMetersValue / R
+  const bearing = toRad(bearingDegrees)
+  const lat1 = toRad(origin.lat)
+  const lng1 = toRad(origin.lng)
+  const lat2 = Math.asin(Math.sin(lat1) * Math.cos(angularDistance) + Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearing))
+  const lng2 = lng1 + Math.atan2(Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(lat1), Math.cos(angularDistance) - Math.sin(lat1) * Math.sin(lat2))
+  return { lat: toDeg(lat2), lng: ((toDeg(lng2) + 540) % 360) - 180 }
+}
 export function sampleLine(coordinates: Position[], spacingMeters = 8): Array<Position & { distanceFromStart: number }> {
   const result: Array<Position & { distanceFromStart: number }> = []; let walked = 0
   for (let i = 0; i < coordinates.length - 1; i += 1) {

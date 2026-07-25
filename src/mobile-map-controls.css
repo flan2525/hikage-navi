@@ -1,0 +1,4 @@
+@media (max-width: 760px) {
+  .panel { pointer-events: none; }
+  .panel header, .route-result, .building-status, .start-button, .disclaimer { pointer-events: auto; }
+}
