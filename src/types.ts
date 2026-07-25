@@ -1,0 +1,10 @@
+export type Position = { lng: number; lat: number }
+export type RouteKind = 'shade' | 'shortest'
+export type RouteSource = 'api' | 'fallback'
+export type RoutePlan = { id: string; kind: RouteKind; label: string; coordinates: Position[]; distanceMeters: number; durationSeconds: number; source: RouteSource }
+export type Weather = { temperature: number | null; apparentTemperature: number | null; humidity: number | null; windSpeed: number | null; radiation: number | null; hourly: HourWeather[]; observedAt: string | null }
+export type HourWeather = { time: string; temperature: number | null; apparentTemperature: number | null; radiation: number | null }
+export type Building = { id: string; name: string; heightMeters: number; footprint: Position[]; source: string; isSample: boolean }
+export type CoolSpot = { id: string; type: 'arcade' | 'park' | 'public_facility' | 'cooling_shelter' | 'water' | 'rest'; name: string; geometry: Position[]; activeHours: string; shadeBonus: number; passable: boolean; source: string; lastVerified: string }
+export type ShadePoint = Position & { shaded: boolean; distanceFromStart: number; arrivalAt: Date }
+export type ShadeResult = { points: ShadePoint[]; shadedDistanceMeters: number; totalDistanceMeters: number; shadePercent: number; sunAltitude: number; sunBearing: number }

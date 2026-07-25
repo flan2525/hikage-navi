@@ -1,0 +1,9 @@
+import { DESTINATION, START, fallbackRoutes } from '../data/hiroshima'
+import type { RoutePlan } from '../types'
+type OrsFeature = { geometry?: { coordinates?: number[][] }; properties?: { summary?: { distance?: number; duration?: number } } }
+function mapFeature(feature: OrsFeature, index: number): RoutePlan | null { const coordinates = feature.geometry?.coordinates?.map(([lng, lat]) => ({ lng, lat })).filter((p) => Number.isFinite(p.lng) && Number.isFinite(p.lat)) ?? []; if (coordinates.length < 2) return null; const summary = feature.properties?.summary; return { id: `ors-${index}`, kind: index === 0 ? 'shortest' : 'shade', label: index === 0 ? '最短ルート' : '代替ルート', coordinates, distanceMeters: summary?.distance ?? 0, durationSeconds: summary?.duration ?? 0, source: 'api' } }
+export async function fetchWalkingRoutes(signal?: AbortSignal): Promise<RoutePlan[]> {
+  const params = new URLSearchParams({ start: `${START.lng},${START.lat}`, end: `${DESTINATION.lng},${DESTINATION.lat}` }); const response = await fetch(`/api/routes?${params}`, { signal }); if (!response.ok) throw new Error('徒歩経路を取得できませんでした')
+  const json = await response.json() as { features?: OrsFeature[] }; const routes = (json.features ?? []).map(mapFeature).filter((route): route is RoutePlan => route !== null); if (!routes.length) throw new Error('徒歩経路が空です'); return routes
+}
+export async function loadRoutes(signal?: AbortSignal): Promise<{ routes: RoutePlan[]; isFallback: boolean }> { try { return { routes: await fetchWalkingRoutes(signal), isFallback: false } } catch { return { routes: fallbackRoutes, isFallback: true } } }
