@@ -4,4 +4,5 @@ import App from './App'
 import './styles.css'
 import './mobile-map-controls.css'
 import './shade-validation.css'
+import './review.css'
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)
