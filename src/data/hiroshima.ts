@@ -5,8 +5,8 @@ export const START: Position = { lng: 132.4753, lat: 34.3978 }
 export const DESTINATION: Position = { lng: 132.4537, lat: 34.3955 }
 
 export const fallbackRoutes: RoutePlan[] = [
-  { id: 'sample-shade', kind: 'shade', label: '日陰優先（実証用サンプル）', source: 'fallback', distanceMeters: 2650, durationSeconds: 2040, coordinates: [START, { lng: 132.4717, lat: 34.3973 }, { lng: 132.4678, lat: 34.3968 }, { lng: 132.4644, lat: 34.3955 }, { lng: 132.4600, lat: 34.3946 }, { lng: 132.4565, lat: 34.3942 }, DESTINATION] },
-  { id: 'sample-shortest', kind: 'shortest', label: '最短（実証用サンプル）', source: 'fallback', distanceMeters: 2380, durationSeconds: 1810, coordinates: [START, { lng: 132.4706, lat: 34.3978 }, { lng: 132.4652, lat: 34.3974 }, { lng: 132.4595, lat: 34.3967 }, DESTINATION] },
+  { id: 'sample-shade', kind: 'shade', label: '影渡り（実証用サンプル）', source: 'fallback', distanceMeters: 2650, durationSeconds: 2040, coordinates: [START, { lng: 132.4717, lat: 34.3973 }, { lng: 132.4678, lat: 34.3968 }, { lng: 132.4644, lat: 34.3955 }, { lng: 132.4600, lat: 34.3946 }, { lng: 132.4565, lat: 34.3942 }, DESTINATION] },
+  { id: 'sample-shortest', kind: 'shortest', label: '灼熱ルート（実証用サンプル）', source: 'fallback', distanceMeters: 2380, durationSeconds: 1810, coordinates: [START, { lng: 132.4706, lat: 34.3978 }, { lng: 132.4652, lat: 34.3974 }, { lng: 132.4595, lat: 34.3967 }, DESTINATION] },
 ]
 
 // PLATEAU配信データを導入するまでの、表示・計算確認専用の小範囲サンプル。

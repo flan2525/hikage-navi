@@ -1,0 +1,14 @@
+/* Keep the map legend clear of MapLibre's navigation controls. */
+.shadow-legend {
+  top: 84px;
+  right: 26px;
+  bottom: auto;
+}
+
+@media (max-width: 760px) {
+  .shadow-legend {
+    top: 214px;
+    right: 14px;
+    bottom: auto;
+  }
+}
