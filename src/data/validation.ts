@@ -6,6 +6,10 @@ export const validationLocations: ValidationLocation[] = [
   { id: 'hondori', name: '本通', position: { lng: 132.4602, lat: 34.3946 }, zoom: 16.5, note: 'アーケードと建物影を分けて確認' },
   { id: 'atomic-bomb-dome', name: '原爆ドーム周辺', position: { lng: 132.4537, lat: 34.3955 }, zoom: 16, note: '河川沿いの開けた場所との比較' },
   { id: 'peace-memorial-park', name: '平和記念公園', position: { lng: 132.4527, lat: 34.3928 }, zoom: 15.8, note: '公園内は樹木影を別要因として記録' },
+  { id: 'astram-hakushima', name: 'アストラムライン白島駅', position: { lng: 132.4627488, lat: 34.4109218 }, zoom: 16, note: '白島駅と新白島駅を別地点として確認' },
+  { id: 'shinhakushima', name: 'JR・アストラムライン新白島駅', position: { lng: 132.4616303, lat: 34.4083746 }, zoom: 16, note: '駅間回廊の建物境界と影を確認' },
+  { id: 'jr-yokogawa', name: 'JR横川駅', position: { lng: 132.4503303, lat: 34.4102588 }, zoom: 16, note: 'JRと広電の駅位置を分けて確認' },
+  { id: 'jr-nishi-hiroshima', name: 'JR西広島駅', position: { lng: 132.4281626, lat: 34.3981397 }, zoom: 16, note: '西広島のPLATEAU範囲を確認' },
 ]
 
 // 位置・運用情報の一次確認前に使う検証用の概略線。実データとして扱わない。

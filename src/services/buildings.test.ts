@@ -1,19 +1,29 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchPlateauBuildings } from './buildings'
+import { datasetIdsForJourney, fetchPlateauBuildings, resetBuildingCacheForTests } from './buildings'
 
-afterEach(() => vi.restoreAllMocks())
-const metadata = { cityName: '広島市', dataYear: 2024, specification: '4.1', cityGmlVersion: '2.0', sourceCrs: 'EPSG:6697', outputCrs: 'EPSG:4326', buildingCount: 1, geojsonBytes: 1, target: { name: 'test', bbox: [132, 34, 133, 35] as [number, number, number, number], bufferMeters: 350 } }
-const collection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { id: 'b1', height: 12, heightSource: 'measuredHeight', dataYear: 2024, lod: 2, source: 'PLATEAU' }, geometry: { type: 'Polygon', coordinates: [[[132.46, 34.39], [132.461, 34.39], [132.461, 34.391], [132.46, 34.39]]] } }] }
+const feature = (id: string) => ({ type: 'Feature', properties: { id, height: 12, heightSource: 'measuredHeight', dataYear: 2024, lod: 2, source: 'PLATEAU' }, geometry: { type: 'Polygon', coordinates: [[[132.46, 34.39], [132.461, 34.39], [132.461, 34.391], [132.46, 34.39]]] } })
+const manifest = { version: 1, source: 'test', datasets: [
+  { id: 'hakushima', label: '白島', url: '/hakushima.geojson', areaIds: ['hakushima'], routeKeys: [], bounds: [132, 34, 133, 35], buildingCount: 1, dataYear: 2024, version: 'v1', fileSizeBytes: 1, source: 'test' },
+  { id: 'yokogawa', label: '横川', url: '/yokogawa.geojson', areaIds: ['yokogawa'], routeKeys: [], bounds: [132, 34, 133, 35], buildingCount: 1, dataYear: 2024, version: 'v1', fileSizeBytes: 1, source: 'test' },
+  { id: 'corridor-shinhakushima-yokogawa', label: '回廊', url: '/corridor.geojson', areaIds: ['hakushima', 'yokogawa'], routeKeys: [], bounds: [132, 34, 133, 35], buildingCount: 1, dataYear: 2024, version: 'v1', fileSizeBytes: 1, source: 'test' },
+] }
+const jsonResponse = (value: unknown) => ({ ok: true, json: async () => value })
+afterEach(() => { vi.restoreAllMocks(); resetBuildingCacheForTests() })
 
 describe('PLATEAU building loader', () => {
-  it('converts GeoJSON into shade-ready buildings', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce({ ok: true, json: async () => collection }).mockResolvedValueOnce({ ok: true, json: async () => metadata }))
-    const data = await fetchPlateauBuildings(new AbortController().signal)
-    expect(data.buildings).toHaveLength(1)
-    expect(data.buildings[0].footprint[0]).toEqual({ lng: 132.46, lat: 34.39 })
+  it('loads only the selected datasets and removes duplicate IDs', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => Promise.resolve(url === '/data/plateau/areas.json' ? jsonResponse(manifest) : jsonResponse({ type: 'FeatureCollection', features: [feature('b1')] }))))
+    const data = await fetchPlateauBuildings(['hakushima', 'yokogawa'])
+    expect(data.buildings).toHaveLength(1); expect(data.duplicateBuildingCount).toBe(1)
+    expect(fetch).toHaveBeenCalledTimes(3)
   })
-  it('keeps the app recoverable when the data request fails', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503 }))
-    await expect(fetchPlateauBuildings(new AbortController().signal)).rejects.toThrow('503')
+  it('keeps successful datasets when another requested dataset fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => Promise.resolve(url === '/data/plateau/areas.json' ? jsonResponse(manifest) : url === '/yokogawa.geojson' ? { ok: false, status: 503 } : jsonResponse({ type: 'FeatureCollection', features: [feature('b1')] }))))
+    const data = await fetchPlateauBuildings(['hakushima', 'yokogawa'])
+    expect(data.buildings).toHaveLength(1); expect(data.failedDatasetIds).toEqual(['yokogawa'])
+  })
+  it('selects corridor data only for the corresponding journey', () => {
+    expect(datasetIdsForJourney('hakushima', 'yokogawa')).toEqual(['hakushima', 'yokogawa', 'corridor-shinhakushima-yokogawa'])
+    expect(datasetIdsForJourney('central', 'central')).toEqual(['central'])
   })
 })

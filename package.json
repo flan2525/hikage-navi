@@ -9,7 +9,7 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:plateau": "node scripts/test-plateau-conversion.mjs",
-    "convert:plateau": "node scripts/convert-plateau-buildings.mjs"
+    "convert:plateau": "node scripts/convert-plateau-areas.mjs"
   },
   "dependencies": {
     "maplibre-gl": "^5.12.0",

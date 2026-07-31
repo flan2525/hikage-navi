@@ -8,12 +8,13 @@ export type RouteMetrics = {
   maxSunnyCrossingMeters: number
   sunnyCrossings: number
   nextShadeDistanceMeters: number | null
+  outsideCoverageMeters: number
 }
 
 const walkingSpeed = 1.25
 
 export function calculateRouteMetrics(result: ShadeResult | undefined): RouteMetrics {
-  if (!result || result.points.length < 2) return { totalShadeMeters: 0, longestShadeMeters: 0, sunnyMeters: 0, sunnySeconds: 0, maxSunnyCrossingMeters: 0, sunnyCrossings: 0, nextShadeDistanceMeters: null }
+  if (!result || result.points.length < 2) return { totalShadeMeters: 0, longestShadeMeters: 0, sunnyMeters: 0, sunnySeconds: 0, maxSunnyCrossingMeters: 0, sunnyCrossings: 0, nextShadeDistanceMeters: null, outsideCoverageMeters: 0 }
   let totalShadeMeters = 0; let longestShadeMeters = 0; let sunnyMeters = 0; let maxSunnyCrossingMeters = 0; let sunnyCrossings = 0; let activeStatus: ShadeStatus | null = null; let activeDistance = 0; let nextShadeDistanceMeters: number | null = null
   const closeSegment = () => {
     if (activeStatus === 'shaded') longestShadeMeters = Math.max(longestShadeMeters, activeDistance)
@@ -31,5 +32,5 @@ export function calculateRouteMetrics(result: ShadeResult | undefined): RouteMet
     const firstShade = result.points.find((point) => point.status === 'shaded')
     nextShadeDistanceMeters = firstShade ? firstShade.distanceFromStart : null
   } else nextShadeDistanceMeters = 0
-  return { totalShadeMeters, longestShadeMeters, sunnyMeters, sunnySeconds: sunnyMeters / walkingSpeed, maxSunnyCrossingMeters, sunnyCrossings, nextShadeDistanceMeters }
+  return { totalShadeMeters, longestShadeMeters, sunnyMeters, sunnySeconds: sunnyMeters / walkingSpeed, maxSunnyCrossingMeters, sunnyCrossings, nextShadeDistanceMeters, outsideCoverageMeters: result.outsideCoverageDistanceMeters }
 }

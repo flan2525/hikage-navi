@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "source": "PLATEAU Hiroshima 2024",
+  "datasets": [
+    {
+      "id": "central",
+      "label": "広島中心部",
+      "url": "/data/plateau/hiroshima-central-2024-v1.geojson",
+      "areaIds": [
+        "central"
+      ],
+      "routeKeys": [
+        "central:central"
+      ],
+      "bounds": [
+        132.45,
+        34.392,
+        132.4795,
+        34.4015
+      ],
+      "buildingCount": 3521,
+      "dataYear": 2024,
+      "version": "v1",
+      "fileSizeBytes": 2084253,
+      "source": "PLATEAU広島市 2024年度・仕様4.1・CityGML 2.0 / PLATEAU Data License 1.0"
+    },
+    {
+      "id": "hakushima",
+      "label": "白島・新白島",
+      "url": "/data/plateau/hakushima-2024-v1.geojson",
+      "areaIds": [
+        "hakushima"
+      ],
+      "routeKeys": [
+        "hakushima:hakushima"
+      ],
+      "bounds": [
+        132.4565,
+        34.4045,
+        132.4675,
+        34.416
+      ],
+      "buildingCount": 2155,
+      "dataYear": 2024,
+      "version": "v1",
+      "fileSizeBytes": 1203135,
+      "source": "PLATEAU広島市 2024年度・仕様4.1・CityGML 2.0 / PLATEAU Data License 1.0"
+    },
+    {
+      "id": "yokogawa",
+      "label": "横川",
+      "url": "/data/plateau/yokogawa-2024-v1.geojson",
+      "areaIds": [
+        "yokogawa"
+      ],
+      "routeKeys": [
+        "yokogawa:yokogawa"
+      ],
+      "bounds": [
+        132.442,
+        34.4045,
+        132.4565,
+        34.416
+      ],
+      "buildingCount": 3001,
+      "dataYear": 2024,
+      "version": "v1",
+      "fileSizeBytes": 1694877,
+      "source": "PLATEAU広島市 2024年度・仕様4.1・CityGML 2.0 / PLATEAU Data License 1.0"
+    },
+    {
+      "id": "nishi-hiroshima",
+      "label": "西広島",
+      "url": "/data/plateau/nishi-hiroshima-2024-v1.geojson",
+      "areaIds": [
+        "nishi-hiroshima"
+      ],
+      "routeKeys": [
+        "nishi-hiroshima:nishi-hiroshima"
+      ],
+      "bounds": [
+        132.4215,
+        34.3915,
+        132.4365,
+        34.405
+      ],
+      "buildingCount": 2648,
+      "dataYear": 2024,
+      "version": "v1",
+      "fileSizeBytes": 1576436,
+      "source": "PLATEAU広島市 2024年度・仕様4.1・CityGML 2.0 / PLATEAU Data License 1.0"
+    },
+    {
+      "id": "corridor-shinhakushima-yokogawa",
+      "label": "新白島〜横川 回廊",
+      "url": "/data/plateau/corridor-shinhakushima-yokogawa-2024-v1.geojson",
+      "areaIds": [
+        "hakushima",
+        "yokogawa"
+      ],
+      "routeKeys": [
+        "hakushima:yokogawa"
+      ],
+      "bounds": [
+        132.444,
+        34.4045,
+        132.4675,
+        34.4145
+      ],
+      "buildingCount": 4239,
+      "dataYear": 2024,
+      "version": "v1",
+      "fileSizeBytes": 2374489,
+      "source": "PLATEAU広島市 2024年度・仕様4.1・CityGML 2.0 / PLATEAU Data License 1.0"
+    },
+    {
+      "id": "corridor-yokogawa-nishihiroshima",
+      "label": "横川〜西広島 回廊",
+      "url": "/data/plateau/corridor-yokogawa-nishihiroshima-2024-v1.geojson",
+      "areaIds": [
+        "yokogawa",
+        "nishi-hiroshima"
+      ],
+      "routeKeys": [
+        "nishi-hiroshima:yokogawa"
+      ],
+      "bounds": [
+        132.422,
+        34.3915,
+        132.454,
+        34.4145
+      ],
+      "buildingCount": 10780,
+      "dataYear": 2024,
+      "version": "v1",
+      "fileSizeBytes": 6053165,
+      "source": "PLATEAU広島市 2024年度・仕様4.1・CityGML 2.0 / PLATEAU Data License 1.0"
+    }
+  ]
+}

@@ -14,8 +14,8 @@
 - 範囲: 広島駅〜平和記念公園の経路周辺約350m
 - BBox: `[132.4500, 34.3920, 132.4795, 34.4015]`（longitude, latitude）
 - 入力図郭: `51324376`、`51324377`、`51324378`、`51324386`、`51324387`、`51324388`
-- 出力: `public/data/plateau/hiroshima-central-buildings.geojson`
-- メタデータ: `public/data/plateau/hiroshima-central-buildings.meta.json`
+- 出力: `public/data/plateau/hiroshima-central-2024-v1.geojson` と `areas.json`
+- メタデータ: `areas.json` 内のデータセット定義
 - 変換結果: 3,521棟、2,084,253 bytes（約1.99 MiB、非圧縮）
 
 Cloudflare Pagesは標準で圧縮配信するため、実際の転送量は圧縮形式とクライアントにより変わる。初期範囲ではポリゴン簡略化を行わない。ファイルが増える場合は簡略化と領域分割を検討し、より広域になった時点でPMTilesまたはベクタータイルへ移行する。
@@ -25,13 +25,17 @@ Cloudflare Pagesは標準で圧縮配信するため、実際の転送量は圧�
 1. 公式APIで対象BBoxを問い合わせ、`scripts/plateau-config.mjs`の`sourceFiles`を更新する。
 2. 各GMLを`data/raw/`に置く。`data/raw/`は`.gitignore`によりGit管理しない。
 3. `npm run test:plateau`で変換ロジックを確認する。
-4. `npm run convert:plateau`を実行する。
+4. `npm run convert:plateau`を実行する。出力は`areas.json`と、`hiroshima-central-2024-v1.geojson`、`hakushima-2024-v1.geojson`、`yokogawa-2024-v1.geojson`、`nishi-hiroshima-2024-v1.geojson`、2つの駅間回廊GeoJSONである。
 
 変換はNode.js標準機能だけを使用する。`lod0RoofEdge`からフットプリントを取り出し、EPSG:6697の`lat, lon, z`をGeoJSONの`lon, lat`へ並べ替える。リングが閉じていない、面積が0、座標が日本の範囲外のポリゴンは除外する。対象BBox外の建物も除外する。
 
 高さは`measuredHeight`を優先する。属性が無くても建物内のZ値から1m以上の高低差を取得できる場合は`geometry_z_range`と記録する。それ以外は高さを推定せず、出力・日陰計算から除外する。
 
 元データの再配布・利用時は最新のライセンスと出典表記を再確認する。
+
+## 多地域抽出
+
+対象図郭は中心部の51324376〜88に加え、白島・横川・西広島の経路回廊を覆う51324374、75、84〜87、94〜97を使う。元CityGMLは`data/raw/`に置きGit管理しない。エリアごとの抽出境界は`plateau-config.mjs`で変更でき、経路から原則400mの建物影を含める。
 
 ## 日陰検証で表示する属性
 

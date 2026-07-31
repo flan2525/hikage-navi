@@ -1,6 +1,9 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
+/data/plateau/areas.json
+  Cache-Control: public, max-age=0, must-revalidate
+
 /data/plateau/*
   Cache-Control: public, max-age=31536000, immutable
 
