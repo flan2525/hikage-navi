@@ -1,5 +1,6 @@
 export type Position = { lng: number; lat: number }
 export type Bounds = [number, number, number, number]
+export type PlateauCoverage = { type: 'MultiPolygon'; coordinates: number[][][][]; gridSizeDegrees?: number }
 export type NavigationPoint = {
   id: string
   name: string
@@ -19,9 +20,9 @@ export type Weather = { temperature: number | null; apparentTemperature: number 
 export type HourWeather = { time: string; temperature: number | null; apparentTemperature: number | null; radiation: number | null }
 export type Building = { id: string; name?: string; heightMeters: number; footprint: Position[]; source: string; isSample: boolean; heightSource?: 'measuredHeight' | 'geometry_z_range' | 'sample'; dataYear?: number; lod?: number; usage?: string | null }
 export type BuildingDataMetadata = { cityName: string; dataYear: number; specification: string; cityGmlVersion: string; sourceCrs: string; outputCrs: string; buildingCount: number; geojsonBytes: number; target: { name: string; bbox: Bounds; bufferMeters: number } }
-export type PlateauDataset = { id: string; label: string; url: string; areaIds: string[]; routeKeys: string[]; bounds: Bounds; buildingCount: number; dataYear: number; version: string; fileSizeBytes: number; source: string }
+export type PlateauDataset = { id: string; label: string; url: string; areaIds: string[]; routeKeys: string[]; bounds: Bounds; coverage?: PlateauCoverage; supplemental?: boolean; buildingCount: number; dataYear: number; version: string; fileSizeBytes: number; gzipBytes?: number; measuredHeightCount?: number; geometryHeightCount?: number; heightExcludedCount?: number; duplicateBuildingCount?: number; meshCodes?: string[]; source: string }
 export type PlateauManifest = { version: number; source: string; datasets: PlateauDataset[] }
-export type BuildingData = { buildings: Building[]; metadata: BuildingDataMetadata; datasetIds?: string[]; failedDatasetIds?: string[]; duplicateBuildingCount?: number; coverageBounds?: Bounds[] }
+export type BuildingData = { buildings: Building[]; metadata: BuildingDataMetadata; datasetIds?: string[]; failedDatasetIds?: string[]; duplicateBuildingCount?: number; coverageBounds?: Bounds[]; coverageDisplayBounds?: Bounds[]; performance?: { totalMilliseconds: number; datasetLoadMilliseconds: number; parseMilliseconds: number; dedupeMilliseconds: number } }
 export type BuildingDisplayMode = '3d' | '2d' | 'off'
 export type WorldMode = 'shadow' | 'reality'
 export type CoolSpot = { id: string; type: 'arcade' | 'park' | 'public_facility' | 'cooling_shelter' | 'water' | 'rest'; name: string; geometry: Position[]; activeHours: string; shadeBonus: number; passable: boolean; source: string; lastVerified: string }

@@ -9,5 +9,5 @@ describe('multi-area navigation points', () => {
     expect(pointById.get('jr-nishi-hiroshima')?.coordinates).not.toEqual(pointById.get('hiroden-nishi-hiroshima')?.coordinates)
   })
   it('provides a source for every selectable point', () => expect(navigationPoints.every((point) => point.source.length > 0)).toBe(true))
-  it('selects the west corridor and no unnecessary central data', () => expect(datasetIdsForJourney('yokogawa', 'nishi-hiroshima')).toEqual(['yokogawa', 'nishi-hiroshima', 'corridor-yokogawa-nishihiroshima']))
+  it('selects the minimum west-area seed datasets without central data', () => expect(datasetIdsForJourney('yokogawa', 'nishi-hiroshima')).toEqual(['yokogawa', 'nishi-hiroshima']))
 })

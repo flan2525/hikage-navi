@@ -8,7 +8,7 @@ export const plateauConfig = {
   outputCrs: 'EPSG:4326 (WGS84 longitude, latitude)',
   license: 'PLATEAU Data License 1.0 / source attribution required',
   target: {
-    name: '広島駅〜平和記念公園 経路周辺（約350m）',
+    name: '白島・横川・西広島・広島駅〜平和記念公園 経路周辺',
     // [min longitude, min latitude, max longitude, max latitude]
     bbox: [132.45, 34.392, 132.4795, 34.4015],
     bufferMeters: 350,
@@ -19,7 +19,9 @@ export const plateauConfig = {
     { id: 'yokogawa', label: '横川', areaIds: ['yokogawa'], routeKeys: ['yokogawa:yokogawa'], meshCodes: ['51324385', '51324386', '51324395', '51324396'], bbox: [132.442, 34.4045, 132.4565, 34.416], bufferMeters: 400, output: 'public/data/plateau/yokogawa-2024-v1.geojson' },
     { id: 'nishi-hiroshima', label: '西広島', areaIds: ['nishi-hiroshima'], routeKeys: ['nishi-hiroshima:nishi-hiroshima'], meshCodes: ['51324374', '51324375', '51324384', '51324385'], bbox: [132.4215, 34.3915, 132.4365, 34.405], bufferMeters: 400, output: 'public/data/plateau/nishi-hiroshima-2024-v1.geojson' },
     { id: 'corridor-shinhakushima-yokogawa', label: '新白島〜横川 回廊', areaIds: ['hakushima', 'yokogawa'], routeKeys: ['hakushima:yokogawa'], meshCodes: ['51324385', '51324386', '51324387', '51324395', '51324396', '51324397'], bbox: [132.444, 34.4045, 132.4675, 34.4145], bufferMeters: 400, output: 'public/data/plateau/corridor-shinhakushima-yokogawa-2024-v1.geojson' },
-    { id: 'corridor-yokogawa-nishihiroshima', label: '横川〜西広島 回廊', areaIds: ['yokogawa', 'nishi-hiroshima'], routeKeys: ['nishi-hiroshima:yokogawa'], meshCodes: ['51324374', '51324375', '51324376', '51324384', '51324385', '51324386', '51324394', '51324395', '51324396'], bbox: [132.422, 34.3915, 132.454, 34.4145], bufferMeters: 400, output: 'public/data/plateau/corridor-yokogawa-nishihiroshima-2024-v1.geojson' },
+    { id: 'corridor-yokogawa-nishihiroshima-east', label: '横川〜西広島 東回廊', areaIds: ['yokogawa', 'nishi-hiroshima'], routeKeys: ['nishi-hiroshima:yokogawa'], meshCodes: ['51324374', '51324375', '51324376', '51324384', '51324385', '51324386', '51324394', '51324395', '51324396'], bbox: [132.447, 34.3915, 132.454, 34.4145], bufferMeters: 400, output: 'public/data/plateau/corridor-yokogawa-nishihiroshima-east-2024-v1.geojson' },
+    { id: 'corridor-yokogawa-nishihiroshima-central', label: '横川〜西広島 中央回廊', areaIds: ['yokogawa', 'nishi-hiroshima'], routeKeys: ['nishi-hiroshima:yokogawa'], meshCodes: ['51324374', '51324375', '51324376', '51324384', '51324385', '51324386', '51324394', '51324395', '51324396'], bbox: [132.435, 34.3915, 132.447, 34.4145], bufferMeters: 400, output: 'public/data/plateau/corridor-yokogawa-nishihiroshima-central-2024-v1.geojson' },
+    { id: 'corridor-yokogawa-nishihiroshima-west', label: '横川〜西広島 西回廊', areaIds: ['yokogawa', 'nishi-hiroshima'], routeKeys: ['nishi-hiroshima:yokogawa'], meshCodes: ['51324374', '51324375', '51324376', '51324384', '51324385', '51324386', '51324394', '51324395', '51324396'], bbox: [132.422, 34.3915, 132.435, 34.4145], bufferMeters: 400, output: 'public/data/plateau/corridor-yokogawa-nishihiroshima-west-2024-v1.geojson' },
   ],
   sourceFiles: [
     { meshCode: '51324374', maxLod: 2, path: 'data/raw/51324374_bldg_6697_op.gml', url: 'https://assets.cms.plateau.reearth.io/assets/cc/d28a0b-63c2-4da8-a8e2-2dc20fc263dc/34100_hiroshima-shi_city_2024_citygml_1_op/udx/bldg/51324374_bldg_6697_op.gml' },
@@ -44,7 +46,6 @@ export const plateauConfig = {
     { meshCode: '51324388', maxLod: 3, path: 'data/raw/51324388_bldg_6697_op.gml', url: 'https://assets.cms.plateau.reearth.io/assets/cc/d28a0b-63c2-4da8-a8e2-2dc20fc263dc/34100_hiroshima-shi_city_2024_citygml_1_op/udx/bldg/51324388_bldg_6697_op.gml' },
   ],
   output: {
-    geojson: 'public/data/plateau/hiroshima-central-2024-v1.geojson',
-    metadata: 'public/data/plateau/hiroshima-central-2024-v1.meta.json',
+    manifest: 'public/data/plateau/areas.json',
   },
 }

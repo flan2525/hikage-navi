@@ -37,7 +37,7 @@ npm run build
 - 気象: [Open-Meteo](https://open-meteo.com/en/docs)（現在気温、体感温度、湿度、風速、日射、時間別予報）
 - 徒歩経路: OpenRouteServiceの`foot-walking`をPages Functionが代理取得。運用時は[利用条件・クォータ](https://openrouteservice.org/)を確認する。
 - 背景地図: [OpenFreeMap](https://openfreemap.org/)。地図上の帰属表記を維持する。
-- 建物: PLATEAU広島市2024年度・仕様4.1、CityGML 2.0。`areas.json`マニフェストから、選択経路のエリア・回廊だけを遅延読込する。中心部3,521棟、白島・新白島2,155棟、横川3,001棟、西広島2,648棟、駅間回廊も必要な場合だけ読み込む。詳細は[変換手順](docs/plateau-conversion.md)と[多地域設計](docs/multi-area-architecture.md)。
+- 建物: PLATEAU広島市2024年度・仕様4.1、CityGML 2.0。`areas.json`マニフェストから、選択地点の初期データに加えてORS経路の250mバッファとboundsで粗く絞り、coverageセルと経路形状の精密判定を通過したデータだけを遅延読込する。駅間回廊は重複を避ける補助データとして経路本体への接近時だけ追加し、建物IDで重複排除する。GeoJSONはメモリキャッシュされ、地点変更時に同じファイルを再取得しない。中心部3,521棟、白島・新白島2,155棟、横川3,001棟、西広島2,648棟、駅間回廊も必要な場合だけ読み込む。詳細は[変換手順](docs/plateau-conversion.md)と[多地域設計](docs/multi-area-architecture.md)。
 
 PLATEAUデータの原著作権は整備主体に帰属する。利用時は[PLATEAUのデータ利用条件](https://www.mlit.go.jp/plateau/faq/)と公式出典表記を確認する。
 
