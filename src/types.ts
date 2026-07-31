@@ -8,6 +8,7 @@ export type Building = { id: string; name?: string; heightMeters: number; footpr
 export type BuildingDataMetadata = { cityName: string; dataYear: number; specification: string; cityGmlVersion: string; sourceCrs: string; outputCrs: string; buildingCount: number; geojsonBytes: number; target: { name: string; bbox: [number, number, number, number]; bufferMeters: number } }
 export type BuildingData = { buildings: Building[]; metadata: BuildingDataMetadata }
 export type BuildingDisplayMode = '3d' | '2d' | 'off'
+export type WorldMode = 'shadow' | 'reality'
 export type CoolSpot = { id: string; type: 'arcade' | 'park' | 'public_facility' | 'cooling_shelter' | 'water' | 'rest'; name: string; geometry: Position[]; activeHours: string; shadeBonus: number; passable: boolean; source: string; lastVerified: string }
 export type ValidationLocation = { id: string; name: string; position: Position; zoom: number; note: string }
 export type CoveredWalkway = { id: string; name: string; type: 'covered_walkway'; geometry: { type: 'LineString'; coordinates: Position[] }; activeHours: string; alwaysShaded: boolean; passable: boolean; source: string; lastVerified: string; note: string; isVerificationData: boolean }

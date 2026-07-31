@@ -1,27 +1,55 @@
 import { useCallback, useMemo, useState } from 'react'
+import { IntroSequence } from './components/IntroSequence'
 import { MapCanvas } from './components/MapCanvas'
-import { RouteResult } from './components/RouteResult'
 import { ShadeValidationPanel } from './components/ShadeValidationPanel'
+import { ShadowRouteSummary } from './components/ShadowRouteSummary'
+import { ShadowTimeControl } from './components/ShadowTimeControl'
 import { WeatherPanel } from './components/WeatherPanel'
+import { WorldModeToggle } from './components/WorldModeToggle'
 import { validationLocations } from './data/validation'
 import { demoBuildings } from './data/hiroshima'
 import { useAsyncResource } from './hooks/useAsyncResource'
+import { calculateRouteMetrics } from './lib/routeMetrics'
 import { buildShadowAudit, calculateShade, selectShadeCandidateBuildings } from './lib/shade'
 import { buildShadeValidationRecord } from './lib/shadeValidation'
 import { fetchPlateauBuildings } from './services/buildings'
 import { loadRoutes } from './services/routing'
 import { fetchWeather } from './services/weather'
-import type { BuildingDisplayMode, RouteKind } from './types'
+import type { BuildingDisplayMode, RouteKind, WorldMode } from './types'
 
+type DebugLayer = 'buildings' | 'shadows' | 'points'
 const nowRounded = () => { const date = new Date(); date.setMinutes(Math.ceil(date.getMinutes() / 10) * 10, 0, 0); return date }
 const isShadeDebug = new URLSearchParams(window.location.search).get('debug') === 'shade'
+
 export default function App() {
-  const [departure, setDeparture] = useState(nowRounded); const [selected, setSelected] = useState<RouteKind>('shade'); const [is3d, setIs3d] = useState(true); const [buildingMode, setBuildingMode] = useState<BuildingDisplayMode>('3d'); const [webglError, setWebglError] = useState(false); const [validationLocationId, setValidationLocationId] = useState(validationLocations[0].id)
-  const weather = useAsyncResource(fetchWeather); const routesResource = useAsyncResource(loadRoutes); const buildingsResource = useAsyncResource(fetchPlateauBuildings); const routes = routesResource.data?.routes ?? []; const buildingState = buildingsResource.data ? 'plateau' : buildingsResource.error ? 'sample' : 'loading'; const buildings = buildingsResource.data?.buildings ?? (buildingState === 'sample' ? demoBuildings : [])
-  const results = useMemo(() => Object.fromEntries(routes.map((route) => [route.id, calculateShade(route, buildings, departure)])), [routes, buildings, departure]); const selectedRoute = routes.find((route) => route.kind === selected) ?? routes[0]; const selectedResult = selectedRoute ? results[selectedRoute.id] : undefined
+  const [departure, setDeparture] = useState(nowRounded)
+  const [selected, setSelected] = useState<RouteKind>('shade')
+  const [worldMode, setWorldMode] = useState<WorldMode>('shadow')
+  const [is3d, setIs3d] = useState(!isShadeDebug)
+  const [buildingMode, setBuildingMode] = useState<BuildingDisplayMode>(isShadeDebug ? '2d' : 'off')
+  const [debugLayers, setDebugLayers] = useState({ buildings: true, shadows: true, points: true })
+  const [webglError, setWebglError] = useState(false)
+  const [validationLocationId, setValidationLocationId] = useState(validationLocations[0].id)
+  const weather = useAsyncResource(fetchWeather)
+  const routesResource = useAsyncResource(loadRoutes)
+  const buildingsResource = useAsyncResource(fetchPlateauBuildings)
+  const routes = routesResource.data?.routes ?? []
+  const buildingState = buildingsResource.data ? 'plateau' : buildingsResource.error ? 'sample' : 'loading'
+  const buildings = buildingsResource.data?.buildings ?? (buildingState === 'sample' ? demoBuildings : [])
+  const results = useMemo(() => Object.fromEntries(routes.map((route) => [route.id, calculateShade(route, buildings, departure)])), [routes, buildings, departure])
+  const selectedRoute = routes.find((route) => route.kind === selected) ?? routes[0]
+  const selectedResult = selectedRoute ? results[selectedRoute.id] : undefined
+  const metrics = useMemo(() => calculateRouteMetrics(selectedResult), [selectedResult])
   const debugShadows = useMemo(() => !isShadeDebug || !selectedResult ? [] : buildShadowAudit(selectShadeCandidateBuildings(buildings, selectedResult.points), selectedResult.sunAltitude, selectedResult.sunBearing), [buildings, selectedResult])
   const validationLocation = validationLocations.find((location) => location.id === validationLocationId)
-  const selectRoute = useCallback((kind: RouteKind) => setSelected(kind), []); const onUnsupported = useCallback(() => setWebglError(true), []); const cycleBuildingMode = useCallback(() => setBuildingMode((mode) => mode === '3d' ? '2d' : mode === '2d' ? 'off' : '3d'), []); const localTime = `${String(departure.getHours()).padStart(2, '0')}:${String(departure.getMinutes()).padStart(2, '0')}`; const setTime = (value: string) => { const [hours, minutes] = value.split(':').map(Number); setDeparture((date) => { const next = new Date(date); next.setHours(hours, minutes, 0, 0); return next }) }; const setHour = useCallback((hour: number) => setDeparture((date) => { const next = new Date(date); next.setHours(hour, 0, 0, 0); return next }), [])
-  if (webglError) return <main className="webgl-fallback"><h1>日陰ナビ</h1><p>このブラウザでは3D地図（WebGL）を表示できません。</p></main>
-  return <main className="app"><aside className="panel"><header><div className="brand-mark">◒</div><div><p>HIROSHIMA SHADE ROUTING</p><h1>日陰ナビ</h1></div></header><section className="journey"><div><span>出発地</span><strong>広島駅</strong></div><div className="journey-line" /><div><span>到着地</span><strong>平和記念公園</strong></div></section><label className="time-control"><span>出発時刻</span><input type="time" step="600" value={localTime} onChange={(event) => setTime(event.target.value)} /><small>10分単位・日陰率を再計算</small></label><WeatherPanel resource={weather} />{routesResource.loading && <p className="muted">徒歩経路を取得中…</p>}{routesResource.error && <p className="notice">{routesResource.error}</p>}{routes.length > 0 && <RouteResult routes={routes} results={results} selected={selected} onSelect={selectRoute} isFallback={routesResource.data?.isFallback ?? true} />}{isShadeDebug && <ShadeValidationPanel result={selectedResult} location={validationLocation} locations={validationLocations} onLocationChange={setValidationLocationId} onHourChange={setHour} buildRecord={(note) => selectedRoute && selectedResult ? JSON.stringify(buildShadeValidationRecord(selectedRoute, selectedResult, buildingsResource.data?.metadata, departure, note), null, 2) : '{}'}/>}<section className="building-status" aria-live="polite"><strong>建物データ</strong>{buildingState === 'loading' && <span>PLATEAU広島市データを読み込み中…</span>}{buildingState === 'plateau' && <span>PLATEAU広島市・{buildingsResource.data!.metadata.dataYear}年度／{buildingsResource.data!.metadata.buildingCount.toLocaleString()}棟</span>}{buildingState === 'sample' && <span>読み込み失敗：実証用サンプル建物で表示中</span>}{buildingState === 'sample' && <button onClick={buildingsResource.reload}>再取得</button>}<small>建物データから推定。街路樹の影は未反映、アーケードは別データ。</small></section><button className="start-button" onClick={() => window.alert('案内開始は次の実装で現在地追従に対応します。')}>案内を開始</button><p className="disclaimer">実証版：涼しさ・安全を保証するものではありません。</p></aside><section className="map-area"><MapCanvas routes={routes} selectedRoute={selectedRoute} shadeResult={selectedResult} buildings={buildings} debugShadows={debugShadows} debugEnabled={isShadeDebug} validationLocation={isShadeDebug ? validationLocation : undefined} buildingState={buildingState} buildingMode={buildingMode} is3d={is3d} onToggle3d={() => setIs3d((current) => !current)} onCycleBuildingMode={cycleBuildingMode} onUnsupported={onUnsupported} /></section></main>
+  const selectRoute = useCallback((kind: RouteKind) => setSelected(kind), [])
+  const onUnsupported = useCallback(() => setWebglError(true), [])
+  const cycleBuildingMode = useCallback(() => setBuildingMode((mode) => mode === '3d' ? '2d' : mode === '2d' ? 'off' : '3d'), [])
+  const setDebugLayer = useCallback((layer: DebugLayer, visible: boolean) => setDebugLayers((current) => ({ ...current, [layer]: visible })), [])
+  const setMinutes = useCallback((minutes: number) => setDeparture((date) => { const next = new Date(date); next.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0); return next }), [])
+  const toggleWorld = useCallback((mode: WorldMode) => { setWorldMode(mode); if (mode === 'reality' && buildingMode === 'off') setBuildingMode('3d') }, [buildingMode])
+  if (webglError) return <main className="webgl-fallback"><h1>日陰ナビ</h1><p>このブラウザでは影の世界を表示できません。</p></main>
+  const map = <MapCanvas routes={routes} selectedRoute={selectedRoute} shadeResult={selectedResult} buildings={buildings} debugShadows={debugShadows} debugEnabled={isShadeDebug} debugLayerVisibility={debugLayers} validationLocation={isShadeDebug ? validationLocation : undefined} buildingState={buildingState} buildingMode={buildingMode} worldMode={isShadeDebug ? 'reality' : worldMode} is3d={is3d} onToggle3d={() => setIs3d((current) => !current)} onCycleBuildingMode={cycleBuildingMode} onUnsupported={onUnsupported} />
+  if (isShadeDebug) return <main className="debug-app"><aside className="debug-panel"><header><div className="brand-mark">◒</div><div><p>SHADE CALCULATION LAB</p><h1>日陰ナビ</h1></div></header><label className="debug-time">出発時刻<input type="time" step="600" value={`${String(departure.getHours()).padStart(2, '0')}:${String(departure.getMinutes()).padStart(2, '0')}`} onChange={(event) => { const [hours, minutes] = event.target.value.split(':').map(Number); setMinutes(hours * 60 + minutes) }} /></label><WeatherPanel resource={weather} />{routesResource.loading && <p className="muted">徒歩経路を取得中…</p>}{routesResource.error && <p className="notice">{routesResource.error}</p>}{routesResource.data?.fallbackReason && <p className="notice">実証用サンプル経路：{routesResource.data.fallbackReason}</p>}<ShadeValidationPanel result={selectedResult} location={validationLocation} locations={validationLocations} layerVisibility={debugLayers} onLayerVisibilityChange={setDebugLayer} onLocationChange={setValidationLocationId} onHourChange={(hour) => setMinutes(hour * 60)} buildRecord={(note) => selectedRoute && selectedResult ? JSON.stringify(buildShadeValidationRecord(selectedRoute, selectedResult, buildingsResource.data?.metadata, departure, note), null, 2) : '{}'} /><p className="debug-data-note">建物：{buildingState === 'plateau' ? `PLATEAU広島市 ${buildingsResource.data?.metadata.dataYear}年度` : buildingState === 'loading' ? '読込中' : '実証用サンプル'}</p></aside><section className="debug-map-area">{map}</section></main>
+  return <main className="shadow-app"><section className="world-map-area">{map}</section><header className="world-header"><div className="brand"><span className="brand-mark">◒</span><div><h1>日陰ナビ</h1><p>影だけの街を歩く</p></div></div><WorldModeToggle mode={worldMode} onChange={toggleWorld} /></header><div className="journey-chip" aria-label="経路"><button aria-label="出発地を変更">広島駅</button><span>→</span><button aria-label="目的地を変更">平和記念公園</button></div><aside className="world-controls"><ShadowTimeControl value={departure} onCommit={setMinutes} /><div className="world-status"><span>{weather.data?.temperature == null ? '気象を取得中' : `${weather.data.temperature.toFixed(1)}°C / 体感 ${weather.data.apparentTemperature?.toFixed(1) ?? '—'}°C`}</span><span>{buildingState === 'plateau' ? 'PLATEAU 2024・建物影推定' : buildingState === 'loading' ? '建物データ読込中' : '建物は実証用サンプル'}</span></div>{routesResource.loading && <p className="world-notice">徒歩経路を取得中…</p>}{routesResource.error && <p className="world-notice">{routesResource.error}</p>}{routesResource.data?.fallbackReason && <p className="world-notice">実証用サンプル経路：{routesResource.data.fallbackReason}</p>}</aside><aside className="world-summary"><ShadowRouteSummary route={selectedRoute} routeKind={selected} onRouteChange={selectRoute} metrics={metrics} isFallback={routesResource.data?.isFallback ?? true} shadePercent={selectedResult?.shadePercent} /><p className="world-disclaimer">建物形状と太陽位置から推定。樹木・屋根・現地工事は未反映で、実際の日陰と異なる場合があります。</p></aside><IntroSequence /></main>
 }
