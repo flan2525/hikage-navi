@@ -38,6 +38,7 @@ npm run build
 - 徒歩経路: OpenRouteServiceの`foot-walking`をPages Functionが代理取得。運用時は[利用条件・クォータ](https://openrouteservice.org/)を確認する。
 - 背景地図: [OpenFreeMap](https://openfreemap.org/)。地図上の帰属表記を維持する。
 - 建物: PLATEAU広島市2024年度・仕様4.1、CityGML 2.0。`areas.json`マニフェストから、選択地点の初期データに加えてORS経路の250mバッファとboundsで粗く絞り、coverageセルと経路形状の精密判定を通過したデータだけを遅延読込する。駅間回廊は重複を避ける補助データとして経路本体への接近時だけ追加し、建物IDで重複排除する。GeoJSONはメモリキャッシュされ、地点変更時に同じファイルを再取得しない。中心部3,521棟、白島・新白島2,155棟、横川3,001棟、西広島2,648棟、駅間回廊も必要な場合だけ読み込む。詳細は[変換手順](docs/plateau-conversion.md)と[多地域設計](docs/multi-area-architecture.md)。
+- 衛星: `public/data/satellite/metadata.json` のメタデータに基づき、Landsat 9 Collection 2 Level-2地表面温度とSentinel-2B Level-2A NDVIをユーザー選択時だけ遅延表示する。衛星値は現在気温ではなく、NDVIは植生・緑被の傾向で、ルート評価にはまだ使わない。取得・前処理は[衛星レイヤー計画](docs/satellite-layer-plan.md)と`scripts/satellite/`を参照。
 
 PLATEAUデータの原著作権は整備主体に帰属する。利用時は[PLATEAUのデータ利用条件](https://www.mlit.go.jp/plateau/faq/)と公式出典表記を確認する。
 
@@ -47,4 +48,4 @@ PLATEAUデータの原著作権は整備主体に帰属する。利用時は[PLA
 
 ## 今後
 
-本通アーケードなどの常時日陰、街路樹・クーリングスポットの一次情報、現地観測による影判定の精度検証、広域化時のPMTiles/ベクタータイル化を進める。衛星データはまだ取得・表示しない。次工程の配置方針は[衛星レイヤー計画](docs/satellite-layer-plan.md)を参照。
+本通アーケードなどの常時日陰、街路樹・クーリングスポットの一次情報、現地観測による影判定の精度検証、広域化時のPMTiles/ベクタータイル化を進める。衛星値のルート評価への組み込みは、現地検証と観測日の扱いを決めてから行う。

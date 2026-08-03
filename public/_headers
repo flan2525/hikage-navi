@@ -7,6 +7,15 @@
 /data/plateau/areas.json
   Cache-Control: public, max-age=0, must-revalidate
 
+/data/satellite/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+/data/satellite/preview/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/data/satellite/metadata.json
+  Cache-Control: public, max-age=0, must-revalidate
+
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
 

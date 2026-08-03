@@ -12,7 +12,36 @@ export type NavigationPoint = {
   source: string
 }
 export type NavigationArea = { id: string; name: string; description: string; center: [number, number]; defaultZoom: number; pointIds: string[]; buildingDatasetIds: string[] }
-export type EnvironmentalLayerMetadata = { id: string; type: 'land-surface-temperature' | 'ndvi'; label: string; observedAt: string; source: string; bounds: Bounds; resolutionMeters: number; url: string }
+export type EnvironmentalLayerType = 'land-surface-temperature' | 'ndvi'
+export type EnvironmentalLayerMetadata = {
+  id: string
+  type: EnvironmentalLayerType
+  label: string
+  observedAt: string
+  source: string
+  satellite: string
+  sensor: string
+  product: string
+  bounds: Bounds
+  resolutionMeters: number
+  nativeResolutionMeters?: number
+  displayResolutionMeters?: number
+  cloudCover?: number
+  validPixelRatio?: number
+  unit?: string
+  min?: number
+  max?: number
+  colorStops: Array<[number, string]>
+  imageUrl: string
+  previewUrl?: string
+  sourceUrl: string
+  attribution: string
+  license?: string
+  version: string
+  limitations: string[]
+  processing?: Record<string, unknown>
+}
+export type EnvironmentalLayerManifest = { generatedAt: string; target: { bounds: Bounds; sourceBounds?: Bounds; marginMeters?: number; pointCount?: number }; layers: EnvironmentalLayerMetadata[] }
 export type RouteKind = 'shade' | 'shortest'
 export type RouteSource = 'api' | 'fallback'
 export type RoutePlan = { id: string; kind: RouteKind; label: string; coordinates: Position[]; distanceMeters: number; durationSeconds: number; source: RouteSource }

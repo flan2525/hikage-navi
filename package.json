@@ -9,7 +9,11 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:plateau": "node scripts/test-plateau-conversion.mjs",
-    "convert:plateau": "node scripts/convert-plateau-areas.mjs"
+    "convert:plateau": "node scripts/convert-plateau-areas.mjs",
+    "satellite:find": "node scripts/satellite/find-scenes.mjs",
+    "satellite:download": "node scripts/satellite/download-scenes.mjs",
+    "satellite:process": "node scripts/satellite/process-scenes.mjs",
+    "satellite:validate": "node scripts/satellite/validate-output.mjs"
   },
   "dependencies": {
     "maplibre-gl": "^5.12.0",
@@ -18,9 +22,12 @@
     "suncalc": "^1.9.0"
   },
   "devDependencies": {
+    "@types/node": "^26.1.2",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@types/suncalc": "^1.9.0",
+    "geotiff": "^3.0.5",
+    "sharp": "^0.35.3",
     "typescript": "^5.9.2",
     "vite": "^7.1.3",
     "vitest": "^3.2.4"

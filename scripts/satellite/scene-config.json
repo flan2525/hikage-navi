@@ -1,0 +1,31 @@
+{
+  "stacApi": "https://planetarycomputer.microsoft.com/api/stac/v1",
+  "selected": {
+    "landsat": {
+      "id": "landsat-lst-20260723-v1",
+      "collection": "landsat-c2-l2",
+      "item": "LC09_L2SP_111036_20260723_02_T1",
+      "assetKeys": ["lwir11", "qa_pixel"]
+    },
+    "sentinel2": {
+      "id": "sentinel2-ndvi-20260724-v1",
+      "collection": "sentinel-2-l2a",
+      "item": "S2B_MSIL2A_20260724T015649_R060_T53SKU_20260724T040123",
+      "assetKeys": ["B04", "B08", "SCL"]
+    }
+  },
+  "comparison": {
+    "landsat": [
+      { "item": "LC09_L2SP_111036_20260723_02_T1", "observedAt": "2026-07-23T01:40:39.524309Z", "cloudCover": 8.23, "decision": "採用。直近の夏季Landsat 9で、対象範囲を完全に包含し雲量も比較的少ない。" },
+      { "item": "LC08_L2SP_112036_20260722_02_T1", "observedAt": "2026-07-22T01:46:38.610263Z", "cloudCover": 9.71, "decision": "不採用。1日新しいがLandsat 8で、同時期のLandsat 9候補を優先。" },
+      { "item": "LC08_L2SP_112036_20250617_02_T1", "observedAt": "2025-06-17T01:46:47.133258Z", "cloudCover": 24.37, "decision": "不採用。夏季だが採用候補より古く雲量も多い。" },
+      { "item": "LC09_L2SP_111036_20240802_02_T1", "observedAt": "2024-08-02T01:40:26.969375Z", "cloudCover": 22.28, "decision": "不採用。夏季だが古く雲量も多い。" }
+    ],
+    "sentinel2": [
+      { "item": "S2B_MSIL2A_20260724T015649_R060_T53SKU_20260724T040123", "observedAt": "2026-07-24T01:56:49.024Z", "cloudCover": 2.92, "decision": "採用。直近の夏季Sentinel-2 L2Aで、対象タイルを包含し雲量が少ない。" },
+      { "item": "S2C_MSIL2A_20260726T014651_R017_T53SKU_20260726T045412", "observedAt": "2026-07-26T01:46:51.025Z", "cloudCover": 15.458451, "decision": "不採用。2日新しいが雲量が大きく、採用候補の方が有効画素を期待できる。" },
+      { "item": "S2A_MSIL2A_20250802T015121_R017_T53SKU_20250802T044417", "observedAt": "2025-08-02T01:51:21.024Z", "cloudCover": 0.275475, "decision": "不採用。雲量は少ないが、採用候補より古い。" },
+      { "item": "S2C_MSIL2A_20260510T015651_R060_T53SKU_20260510T051317", "observedAt": "2026-05-10T01:56:51.025Z", "cloudCover": 0.025043, "decision": "不採用。雲量は最少だが夏季条件から外れる。" }
+    ]
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "generatedAt": "2026-08-03T03:13:08.924Z",
+  "target": {
+    "bounds": [
+      132.41877809306567,
+      34.387754211789705,
+      132.48372190693433,
+      34.4192457882103
+    ],
+    "sourceBounds": [
+      132.4215,
+      34.39,
+      132.481,
+      34.417
+    ],
+    "marginMeters": 250,
+    "pointCount": 5389
+  },
+  "layers": [
+    {
+      "id": "landsat-lst-20260723-v1",
+      "type": "land-surface-temperature",
+      "label": "地表面温度",
+      "observedAt": "2026-07-23T01:40:39.524309Z",
+      "source": "USGS Landsat Collection 2 Level-2 via Microsoft Planetary Computer",
+      "satellite": "Landsat 9",
+      "sensor": "OLI-2 / TIRS",
+      "product": "Collection 2 Level-2 Surface Temperature",
+      "bounds": [
+        132.41877809306567,
+        34.387754211789705,
+        132.48372190693433,
+        34.4192457882103
+      ],
+      "resolutionMeters": 30,
+      "nativeResolutionMeters": 100,
+      "displayResolutionMeters": 30,
+      "cloudCover": 8.23,
+      "validPixelRatio": 0.9730275308164755,
+      "unit": "°C",
+      "min": 35.14340407999998,
+      "max": 55.19009138000001,
+      "colorStops": [
+        [
+          37.85731196000006,
+          "#2e3a9b"
+        ],
+        [
+          49.08550766000002,
+          "#f1d45b"
+        ],
+        [
+          52.55821598,
+          "#c73639"
+        ]
+      ],
+      "imageUrl": "/data/satellite/landsat-lst-20260723-v1.webp",
+      "previewUrl": "/data/satellite/preview/landsat-lst-20260723-v1.png",
+      "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/landsat-c2-l2/items/LC09_L2SP_111036_20260723_02_T1",
+      "attribution": "U.S. Geological Survey / NASA Landsat 9; processed from Collection 2 Level-2 ST_B10 and QA_PIXEL",
+      "license": "USGS Landsat data policy / public domain",
+      "version": "v1",
+      "limitations": [
+        "地表面温度であり、現在の気温ではありません。",
+        "TIRSの元熱赤外観測は約100mで、表示画像は30mグリッドへ再配置しています。",
+        "雲・雲影・雪・NoDataをQA_PIXELで除外しています。",
+        "観測日時は2026-07-23 01:40 UTC（日本時間10:40頃）です。"
+      ],
+      "processing": {
+        "scale": "ST_K = DN × 0.00341802 + 149.0; °C = K - 273.15",
+        "qaPixelInvalidBits": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "imageBytes": 12904,
+        "previewBytes": 37805,
+        "width": 199,
+        "height": 117
+      },
+      "rawAssets": {
+        "lwir11": {
+          "href": "https://landsateuwest.blob.core.windows.net/landsat-c2/level-2/standard/oli-tirs/2026/111/036/LC09_L2SP_111036_20260723_20260724_02_T1/LC09_L2SP_111036_20260723_20260724_02_T1_ST_B10.TIF",
+          "path": "LC09_L2SP_111036_20260723_20260724_02_T1_ST_B10.TIF",
+          "bytes": 85614252,
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "title": "Surface Temperature Band"
+        },
+        "qa_pixel": {
+          "href": "https://landsateuwest.blob.core.windows.net/landsat-c2/level-2/standard/oli-tirs/2026/111/036/LC09_L2SP_111036_20260723_20260724_02_T1/LC09_L2SP_111036_20260723_20260724_02_T1_QA_PIXEL.TIF",
+          "path": "LC09_L2SP_111036_20260723_20260724_02_T1_QA_PIXEL.TIF",
+          "bytes": 3067096,
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "title": "Pixel Quality Assessment Band"
+        }
+      }
+    },
+    {
+      "id": "sentinel2-ndvi-20260724-v1",
+      "type": "ndvi",
+      "label": "植生（NDVI）",
+      "observedAt": "2026-07-24T01:56:49.024Z",
+      "source": "Copernicus Sentinel-2 Level-2A via Microsoft Planetary Computer",
+      "satellite": "Sentinel-2B",
+      "sensor": "MSI",
+      "product": "Level-2A Surface Reflectance",
+      "bounds": [
+        132.41877809306567,
+        34.387754211789705,
+        132.48372190693433,
+        34.4192457882103
+      ],
+      "resolutionMeters": 10,
+      "nativeResolutionMeters": 10,
+      "displayResolutionMeters": 10,
+      "cloudCover": 2.92,
+      "validPixelRatio": 0.9999618224073835,
+      "unit": "NDVI",
+      "min": -0.19775596072931279,
+      "max": 0.6672504378283712,
+      "colorStops": [
+        [
+          -1,
+          "rgba(83,99,106,0.14)"
+        ],
+        [
+          0,
+          "rgba(108,107,94,0.24)"
+        ],
+        [
+          0.2,
+          "rgba(156,155,97,0.57)"
+        ],
+        [
+          0.5,
+          "rgba(85,166,111,0.86)"
+        ],
+        [
+          0.8,
+          "rgba(31,143,88,0.90)"
+        ],
+        [
+          1,
+          "rgba(10,99,63,0.92)"
+        ]
+      ],
+      "imageUrl": "/data/satellite/sentinel2-ndvi-20260724-v1.webp",
+      "previewUrl": "/data/satellite/preview/sentinel2-ndvi-20260724-v1.png",
+      "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2B_MSIL2A_20260724T015649_R060_T53SKU_20260724T040123",
+      "attribution": "Copernicus Sentinel data 2026, processed by European Space Agency / Microsoft Planetary Computer; B04, B08, SCL",
+      "license": "Copernicus Sentinel Data Terms and Conditions",
+      "version": "v1",
+      "limitations": [
+        "植生・緑被の傾向を示すNDVIで、樹木一本の形状や正確な影ではありません。",
+        "B04/B08は10mグリッドで処理しています。",
+        "SCLの雲・雲影・NoData・欠損・飽和クラスを除外しています。",
+        "観測日時は2026-07-24 01:56 UTC（日本時間10:56頃）です。"
+      ],
+      "processing": {
+        "formula": "NDVI = (B08 - B04) / (B08 + B04)",
+        "reflectanceScale": "reflectance = DN / 10000",
+        "maskedSclClasses": [
+          0,
+          1,
+          3,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "imageBytes": 192432,
+        "previewBytes": 290605,
+        "width": 597,
+        "height": 351
+      },
+      "rawAssets": {
+        "B04": {
+          "href": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/53/S/KU/2026/07/24/S2B_MSIL2A_20260724T015649_N0512_R060_T53SKU_20260724T040123.SAFE/GRANULE/L2A_T53SKU_A048992_20260724T020252/IMG_DATA/R10m/T53SKU_20260724T015649_B04_10m.tif",
+          "path": "T53SKU_20260724T015649_B04_10m.tif",
+          "bytes": 252643283,
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "title": "Band 4 - Red - 10m"
+        },
+        "B08": {
+          "href": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/53/S/KU/2026/07/24/S2B_MSIL2A_20260724T015649_N0512_R060_T53SKU_20260724T040123.SAFE/GRANULE/L2A_T53SKU_A048992_20260724T020252/IMG_DATA/R10m/T53SKU_20260724T015649_B08_10m.tif",
+          "path": "T53SKU_20260724T015649_B08_10m.tif",
+          "bytes": 286841573,
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "title": "Band 8 - NIR - 10m"
+        },
+        "SCL": {
+          "href": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/53/S/KU/2026/07/24/S2B_MSIL2A_20260724T015649_N0512_R060_T53SKU_20260724T040123.SAFE/GRANULE/L2A_T53SKU_A048992_20260724T020252/IMG_DATA/R20m/T53SKU_20260724T015649_SCL_20m.tif",
+          "path": "T53SKU_20260724T015649_SCL_20m.tif",
+          "bytes": 1383136,
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "title": "Scene classfication map (SCL)"
+        }
+      }
+    }
+  ]
+}
