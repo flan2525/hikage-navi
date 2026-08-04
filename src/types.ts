@@ -13,12 +13,43 @@ export type NavigationPoint = {
 }
 export type NavigationArea = { id: string; name: string; description: string; center: [number, number]; defaultZoom: number; pointIds: string[]; buildingDatasetIds: string[] }
 export type EnvironmentalLayerType = 'land-surface-temperature' | 'ndvi'
+export type SatelliteNumericGridMetadata = {
+  dataUrl: string
+  dataType: 'Int16'
+  byteOrder: 'little-endian'
+  scale: number
+  offset: number
+  noData: number
+  width: number
+  height: number
+  bounds: Bounds
+  crs: 'EPSG:4326'
+  rowOrder: 'north-to-south'
+  cellSizeMeters: number
+  nativeResolutionMeters: number
+  displayResolutionMeters: number
+  validPixelRatio: number
+}
+export type SatelliteDistributionStats = {
+  p10: number
+  p25: number
+  p50: number
+  p75: number
+  p90: number
+  p98: number
+  actualMin: number
+  actualMax: number
+  displayMin: number
+  displayMax: number
+}
 export type EnvironmentalLayerMetadata = {
   id: string
   type: EnvironmentalLayerType
   label: string
   observedAt: string
   source: string
+  acquisitionPath: string
+  processingSummary: string
   satellite: string
   sensor: string
   product: string
@@ -39,6 +70,8 @@ export type EnvironmentalLayerMetadata = {
   license?: string
   version: string
   limitations: string[]
+  numericGrid: SatelliteNumericGridMetadata
+  statistics: SatelliteDistributionStats
   processing?: Record<string, unknown>
 }
 export type EnvironmentalLayerManifest = { generatedAt: string; target: { bounds: Bounds; sourceBounds?: Bounds; marginMeters?: number; pointCount?: number }; layers: EnvironmentalLayerMetadata[] }
@@ -63,3 +96,67 @@ export type ShadePoint = Position & { shaded: boolean; status: ShadeStatus; dist
 export type BuildingShadow = { buildingId: string; heightMeters: number; heightSource: Building['heightSource']; dataYear: number | undefined; lod: number | undefined; shadowLengthMeters: number; shadowBearing: number; polygons: Position[][]; isShadeCandidate: boolean }
 export type ShadeAudit = { shadowBearing: number; routeSampleCount: number; shadedPointCount: number; sunnyPointCount: number; indeterminatePointCount: number; outsideCoveragePointCount: number; candidateBuildingCount: number; shadowPolygonCount: number; processingMilliseconds: number }
 export type ShadeResult = { points: ShadePoint[]; shadedDistanceMeters: number; totalDistanceMeters: number; evaluatedDistanceMeters: number; outsideCoverageDistanceMeters: number; shadePercent: number; sunAltitude: number; sunBearing: number; audit: ShadeAudit }
+export type SatelliteRouteSample = {
+  position: Position
+  distanceMeters: number
+  status: ShadeStatus
+  lst: number | null
+  ndvi: number | null
+  lstValid: boolean
+  ndviValid: boolean
+  lstInBounds: boolean
+  ndviInBounds: boolean
+  lstPixel: string | null
+  ndviPixel: string | null
+}
+export type SatelliteMetricBase = {
+  validDataRate: number
+  inBoundsRate: number
+  weightedAverage: number | null
+  referencePixelCount: number
+  uniquePixelCount: number
+  validDistanceMeters: number
+  inBoundsDistanceMeters: number
+}
+export type SatelliteLSTMetrics = SatelliteMetricBase & {
+  weightedMedian: number | null
+  weightedP90: number | null
+  highTempDistanceMeters: number
+  highTempRate: number
+  shadedHighTempDistanceMeters: number
+  sunnyHighTempDistanceMeters: number
+  highTempThreshold: number
+  strongHighTempThreshold: number
+}
+export type SatelliteNDVIMetrics = SatelliteMetricBase & {
+  vegetationDistanceMeters: number
+  vegetationRate: number
+  shadedVegetationDistanceMeters: number
+  sunnyVegetationDistanceMeters: number
+  vegetationThreshold: number
+}
+export type SatelliteRouteAnalysis = {
+  routeId: string
+  routeKind: RouteKind
+  totalDistanceMeters: number
+  shadePercent: number
+  sampleCount: number
+  analysisMilliseconds: number
+  lst: SatelliteLSTMetrics
+  ndvi: SatelliteNDVIMetrics
+  samples: SatelliteRouteSample[]
+}
+export type SatelliteAnalysisResult = {
+  generatedAt: string
+  observedAt: { lst: string; ndvi: string }
+  gridLoadMilliseconds: number
+  gridBytes: number
+  gridMemoryBytes: number
+  routeAnalyses: Record<string, SatelliteRouteAnalysis>
+  totalAnalysisMilliseconds: number
+}
+export type SatelliteDebugVisibility = {
+  highTemperature: boolean
+  vegetation: boolean
+  noData: boolean
+}

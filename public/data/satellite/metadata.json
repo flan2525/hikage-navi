@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-03T03:13:08.924Z",
+  "generatedAt": "2026-08-03T04:43:07.841Z",
   "target": {
     "bounds": [
       132.41877809306567,
@@ -22,10 +22,12 @@
       "type": "land-surface-temperature",
       "label": "地表面温度",
       "observedAt": "2026-07-23T01:40:39.524309Z",
-      "source": "USGS Landsat Collection 2 Level-2 via Microsoft Planetary Computer",
+      "source": "USGS Landsat Collection 2 Level-2 Surface Temperature",
+      "acquisitionPath": "Microsoft Planetary Computer STAC / signed asset",
+      "processingSummary": "ST_B10を摂氏へ変換し、QA_PIXELで無効画素を除外して数値グリッド・表示画像を生成",
       "satellite": "Landsat 9",
       "sensor": "OLI-2 / TIRS",
-      "product": "Collection 2 Level-2 Surface Temperature",
+      "product": "Collection 2 Level-2 Surface Temperature（ST_B10）",
       "bounds": [
         132.41877809306567,
         34.387754211789705,
@@ -38,11 +40,11 @@
       "cloudCover": 8.23,
       "validPixelRatio": 0.9730275308164755,
       "unit": "°C",
-      "min": 35.14340407999998,
-      "max": 55.19009138000001,
+      "min": 36.87975824,
+      "max": 53.019648680000046,
       "colorStops": [
         [
-          37.85731196000006,
+          36.87975824,
           "#2e3a9b"
         ],
         [
@@ -50,22 +52,58 @@
           "#f1d45b"
         ],
         [
-          52.55821598,
+          53.019648680000046,
           "#c73639"
         ]
       ],
       "imageUrl": "/data/satellite/landsat-lst-20260723-v1.webp",
       "previewUrl": "/data/satellite/preview/landsat-lst-20260723-v1.png",
       "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/landsat-c2-l2/items/LC09_L2SP_111036_20260723_02_T1",
-      "attribution": "U.S. Geological Survey / NASA Landsat 9; processed from Collection 2 Level-2 ST_B10 and QA_PIXEL",
+      "attribution": "原典: U.S. Geological Survey / NASA Landsat 9。取得経路: Microsoft Planetary Computer。アプリ側でST_B10とQA_PIXELを加工。",
       "license": "USGS Landsat data policy / public domain",
       "version": "v1",
       "limitations": [
         "地表面温度であり、現在の気温ではありません。",
-        "TIRSの元熱赤外観測は約100mで、表示画像は30mグリッドへ再配置しています。",
+        "TIRSの元熱赤外観測は約100mで、表示画像・数値グリッドは30mグリッドへ再配置しています。",
         "雲・雲影・雪・NoDataをQA_PIXELで除外しています。",
+        "表示色は有効画素のp02〜p98へクリップしています。",
         "観測日時は2026-07-23 01:40 UTC（日本時間10:40頃）です。"
       ],
+      "statistics": {
+        "p10": 39.97648436000003,
+        "p25": 44.867670980000014,
+        "p50": 49.08550766000002,
+        "p75": 50.975672720000034,
+        "p90": 52.09336526000004,
+        "p98": 53.019648680000046,
+        "actualMin": 35.14340407999998,
+        "actualMax": 55.19009138000001,
+        "displayMin": 36.87975824,
+        "displayMax": 53.019648680000046
+      },
+      "numericGrid": {
+        "dataUrl": "/data/satellite/landsat-lst-20260723-v1.bin",
+        "bytes": 46566,
+        "dataType": "Int16",
+        "byteOrder": "little-endian",
+        "scale": 0.1,
+        "offset": 0,
+        "noData": -32768,
+        "width": 199,
+        "height": 117,
+        "bounds": [
+          132.41877809306567,
+          34.387754211789705,
+          132.48372190693433,
+          34.4192457882103
+        ],
+        "crs": "EPSG:4326",
+        "rowOrder": "north-to-south",
+        "cellSizeMeters": 30,
+        "nativeResolutionMeters": 100,
+        "displayResolutionMeters": 30,
+        "validPixelRatio": 0.9730275308164755
+      },
       "processing": {
         "scale": "ST_K = DN × 0.00341802 + 149.0; °C = K - 273.15",
         "qaPixelInvalidBits": [
@@ -76,8 +114,8 @@
           4,
           5
         ],
-        "imageBytes": 12904,
-        "previewBytes": 37805,
+        "imageBytes": 12618,
+        "previewBytes": 38873,
         "width": 199,
         "height": 117
       },
@@ -103,10 +141,12 @@
       "type": "ndvi",
       "label": "植生（NDVI）",
       "observedAt": "2026-07-24T01:56:49.024Z",
-      "source": "Copernicus Sentinel-2 Level-2A via Microsoft Planetary Computer",
+      "source": "Copernicus Sentinel-2 Level-2A Surface Reflectance",
+      "acquisitionPath": "Microsoft Planetary Computer STAC / signed asset",
+      "processingSummary": "B04/B08を反射率へ変換し、SCLで無効画素を除外してNDVI数値グリッド・表示画像を生成",
       "satellite": "Sentinel-2B",
       "sensor": "MSI",
-      "product": "Level-2A Surface Reflectance",
+      "product": "Level-2A Surface Reflectance（B04 / B08 / SCL）",
       "bounds": [
         132.41877809306567,
         34.387754211789705,
@@ -119,8 +159,8 @@
       "cloudCover": 2.92,
       "validPixelRatio": 0.9999618224073835,
       "unit": "NDVI",
-      "min": -0.19775596072931279,
-      "max": 0.6672504378283712,
+      "min": -1,
+      "max": 1,
       "colorStops": [
         [
           -1,
@@ -150,15 +190,51 @@
       "imageUrl": "/data/satellite/sentinel2-ndvi-20260724-v1.webp",
       "previewUrl": "/data/satellite/preview/sentinel2-ndvi-20260724-v1.png",
       "sourceUrl": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2B_MSIL2A_20260724T015649_R060_T53SKU_20260724T040123",
-      "attribution": "Copernicus Sentinel data 2026, processed by European Space Agency / Microsoft Planetary Computer; B04, B08, SCL",
+      "attribution": "原典: Copernicus Sentinel-2。取得経路: Microsoft Planetary Computer。アプリ側でB04/B08/SCLからNDVIを加工。",
       "license": "Copernicus Sentinel Data Terms and Conditions",
       "version": "v1",
       "limitations": [
         "植生・緑被の傾向を示すNDVIで、樹木一本の形状や正確な影ではありません。",
         "B04/B08は10mグリッドで処理しています。",
         "SCLの雲・雲影・NoData・欠損・飽和クラスを除外しています。",
+        "表示色はSentinel-2 NDVIの固定範囲-1〜1です。",
         "観測日時は2026-07-24 01:56 UTC（日本時間10:56頃）です。"
       ],
+      "statistics": {
+        "p10": -0.006141979717183297,
+        "p25": 0.027475672581568397,
+        "p50": 0.08194905869324477,
+        "p75": 0.23538704581358616,
+        "p90": 0.5320993830248456,
+        "p98": 0.6020894146566292,
+        "actualMin": -0.19775596072931279,
+        "actualMax": 0.6672504378283712,
+        "displayMin": -1,
+        "displayMax": 1
+      },
+      "numericGrid": {
+        "dataUrl": "/data/satellite/sentinel2-ndvi-20260724-v1.bin",
+        "bytes": 419094,
+        "dataType": "Int16",
+        "byteOrder": "little-endian",
+        "scale": 0.0001,
+        "offset": 0,
+        "noData": -32768,
+        "width": 597,
+        "height": 351,
+        "bounds": [
+          132.41877809306567,
+          34.387754211789705,
+          132.48372190693433,
+          34.4192457882103
+        ],
+        "crs": "EPSG:4326",
+        "rowOrder": "north-to-south",
+        "cellSizeMeters": 10,
+        "nativeResolutionMeters": 10,
+        "displayResolutionMeters": 10,
+        "validPixelRatio": 0.9999618224073835
+      },
       "processing": {
         "formula": "NDVI = (B08 - B04) / (B08 + B04)",
         "reflectanceScale": "reflectance = DN / 10000",

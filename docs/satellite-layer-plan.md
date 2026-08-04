@@ -1,44 +1,73 @@
-# 衛星レイヤーの取得・前処理・表示
+# 衛星レイヤーの取得・前処理・ルート沿い参考分析
 
-衛星レイヤーは、ルート順位や日陰率へ数値を反映せず、環境観測を地図上で確認するための独立レイヤーとして実装している。
+衛星データは、建物影から計算する既存のルート選択・順位・日陰率を変更しない独立レイヤーである。通常画面では「衛星観測による参考情報」として、debug画面ではルート比較・サンプル点・処理時間を確認できる。
 
-## 採用データ
+## 出典の分離
 
-- 地表面温度: Landsat 9、Collection 2 Level-2 Surface Temperature、2026-07-23 01:40 UTC、雲量8.23%。ST_B10とQA_PIXELを使用。
-- 植生: Sentinel-2B、Level-2A Surface Reflectance、2026-07-24 01:56 UTC、雲量2.92%。10mのB04（Red）とB08（NIR）、20mのSCLを使用。
-- シーン検索はMicrosoft Planetary Computer STAC APIを使用する。STAC検索は公開で、Azure Blob資産の取得時だけ登録不要のSAS署名APIを使う。署名URLやトークンは保存しない。
+| 区分 | 内容 |
+|---|---|
+| 原典 | LST: USGS Landsat Collection 2 Level-2 Surface Temperature。NDVI: Copernicus Sentinel-2 Level-2A Surface Reflectance |
+| 取得経路 | Microsoft Planetary Computer STACでシーンを検索し、Azure Blobの公開資産を署名URLで取得。署名URL・トークンは保存しない |
+| アプリ加工 | LSTはST_B10を摂氏へ変換しQA_PIXELで無効画素を除外。NDVIはB04/B08を反射率へ変換しSCLで無効画素を除外。いずれも表示画像と数値グリッドを生成 |
 
-採用日は、対象範囲を完全に含み、夏季で、検索時点で新しく、比較候補より雲量と観測時期のバランスが良いものを選定した。候補比較は `scripts/satellite/scene-config.json` に記録している。
+採用シーンの候補比較は `scripts/satellite/scene-config.json` に記録している。観測日はLSTが2026-07-23 01:40 UTC、NDVIが2026-07-24 01:56 UTCで、現在の気温や同時刻の気象観測ではない。
 
-## 対象範囲と変換
+## 対象範囲とグリッド
 
-対象boundsは `src/data/navigationPoints.ts`、`src/data/navigationAreas.ts`、`public/data/plateau/areas.json` のデータセット bounds／coverageを集約し、測地計算で250m余白を付けて算出する。実ORS経路JSONを `SATELLITE_ROUTES_FILE` で渡した場合は、その座標も追加できる。今回の生成boundsは `[132.4187780931, 34.3877542118, 132.4837219069, 34.4192457882]`。
+対象boundsはナビゲーション地点・エリア・PLATEAU coverageを集約し、測地計算で250mの余白を付けている。今回のboundsは `[132.4187780931, 34.3877542118, 132.4837219069, 34.4192457882]`。元GeoTIFFはGeoKeyからEPSG:32653を確認し、EPSG:4326の規則的な緯度経度グリッドへ再配置する。
 
-元GeoTIFFはいずれもGeoTIFFのGeoKeyからEPSG:32653（WGS 84 / UTM zone 53N）を確認し、スクリプト内の測地変換でEPSG:4326の画像四隅へ再配置している。座標を見た目合わせで手作業補正していない。
+| レイヤー | グリッド | バイナリ | scale / offset | NoData | 近似表示解像度 | 有効画素率 |
+|---|---:|---:|---:|---:|---:|---:|
+| Landsat LST | 199 × 117 | 46,566 bytes | 0.1 / 0 | -32768 | 30m相当 | 97.30% |
+| Sentinel-2 NDVI | 597 × 351 | 419,094 bytes | 0.0001 / 0 | -32768 | 10m相当 | 99.996% |
 
-## 変換方法
+`public/data/satellite/*.bin` はInt16 little-endian、row orderは北から南、CRSはEPSG:4326。実値は `raw × scale + offset` で復元する。`cellSizeMeters` は表示グリッドの緯度経度セルをメートル換算した近似値で、Landsatの元熱赤外観測が30m精度になることや、NDVIが樹木一本・道路一本を表すことを意味しない。
 
-Landsatは `ST_K = DN × 0.00341802 + 149.0`、`°C = K - 273.15`。QA_PIXELのfill、dilated cloud、cirrus、cloud、cloud shadow、snow（bit 0〜5）を除外する。TIRSの元熱赤外観測は約100mで、表示は30mグリッドへ再配置している。
+画像（WebP）と数値グリッド（BIN）は別資産である。画像を表示しなくてもグリッド分析は実行でき、数値グリッドは衛星参考情報パネルを開いたときだけ取得する。メタデータ、グリッドともPromiseキャッシュを共有し、呼び出し元のAbortControllerによるキャンセルと、古い結果の画面反映防止を行う。
 
-Sentinel-2は `reflectance = DN / 10000`、`NDVI = (B08 - B04) / (B08 + B04)`。SCLの0、1、3、7、8、9、10、11（NoData、飽和・欠損、雲影、雲、cirrus）とゼロ除算を透明にする。10mより高精度には表示しない。
+## 変換方法と表示スケール
 
-再生成コマンド:
+Landsatは `ST_K = DN × 0.00341802 + 149.0`、`°C = K - 273.15`。QA_PIXELのfill、dilated cloud、cirrus、cloud、cloud shadow、snow（bit 0〜5）を除外する。表示色は実値のp02〜p98（36.880〜53.020°C）へクリップするが、数値グリッドにはクリップ前の実値を保持する。
+
+Sentinel-2は `reflectance = DN / 10000`、`NDVI = (B08 - B04) / (B08 + B04)`。SCLの0、1、3、7、8、9、10、11とゼロ除算をNoDataにする。表示色の範囲はNDVI -1〜1で固定し、数値グリッドには有効な実値を保持する。
+
+今回の全対象範囲の分布は次のとおり。これはルート沿いの値ではなく、表示スケールと相対判定の基準である。
+
+| レイヤー | p10 | p25 | p50 | p75 | p90 | p98 | 実値min〜max |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| LST (°C) | 39.976 | 44.868 | 49.086 | 50.976 | 52.093 | 53.020 | 35.143〜55.190 |
+| NDVI | -0.006 | 0.027 | 0.082 | 0.235 | 0.532 | 0.602 | -0.198〜0.667 |
+
+再生成と検証:
 
 ```bash
 npm run satellite:find
 npm run satellite:download
 npm run satellite:process
 npm run satellite:validate
+node scripts/satellite/validate-points.mjs
 ```
 
-元GeoTIFFは `data/raw/` 配下でGit管理外。Pages配信ファイルは `public/data/satellite/metadata.json`、バージョン付きWebP、preview PNG。画像はユーザーが衛星レイヤーを選択するまで取得しない。
+元GeoTIFFは `data/raw/` 配下でGit管理外。Pages配信ファイルは `public/data/satellite/metadata.json`、バージョン付きWebP、preview PNG、Int16 BINである。
 
-## 表示上の注意
+## ルート沿いサンプリング
 
-`EnvironmentalLayerMetadata` は `src/types.ts` に定義し、metadata.jsonの出典・観測日時・解像度・雲量・有効画素率・限界事項を画面へ表示する。MapLibreの画像ソースはベース地図と建物・推定影・ルートの間へ配置する。衛星取得失敗は地図、影、ルート、気象の表示を停止させない。
+既存の `calculateShade` が作る約8m間隔のShadePointを共通のサンプル点として使う。各点は次の点までの距離を重みとし、最近傍の数値セルを参照する。したがって、単純な点数平均ではなく、徒歩距離に対する距離加重平均・加重中央値・加重p90を計算する。ルート末端の距離重みは既存のルート距離に合わせる。
 
-NDVIは植生・緑被の傾向であり、樹木一本の形状や正確な影ではない。Landsatの地表面温度は現在気温ではない。Open-Meteoの気象値と混同しないよう、通常画面と `?debug=shade` の両方に注意書きを表示する。
+- LSTの「高温傾向」は全対象範囲のp75以上、強い高温傾向はp90以上。現在気温・熱中症リスクとは表示しない。
+- NDVIの「植生傾向」はNDVI 0.3以上。緑地面積・樹冠率・日陰率とは表示しない。
+- 各値について有効距離率、bounds内距離率、NoData距離、参照セル数、ユニークセル数を記録する。
+- 建物影の `shaded` / `sunny` / `indeterminate` と組み合わせた距離集計は比較用であり、衛星値を日陰判定へ逆流させない。
+- 画像レイヤーのON/OFFと数値グリッド分析は独立する。
 
-## 次工程
+## 画面とデバッグ
 
-将来、ルート上の点を対象bounds内のラスタセルへ変換し、観測日・空間解像度・NoDataを保持したまま、暑熱傾向を補助指標として記録する。衛星値だけでルートを順位付けせず、まず現地観測・気象・建物影との比較検証を行う。
+通常画面の折りたたみパネルには選択中ルートの参考値、観測日、LST/NDVIの有効率、p75高温距離、NDVI 0.3以上距離を表示する。`?debug=shade` では2ルート比較、グリッドのロード・メモリ量・分析時間、参照セル数、サンプル点の表示切替を提供する。
+
+サンプル点は高温傾向、植生傾向、NoDataを別々の表示にする。これらはデバッグ用の比較可視化で、ルートの優劣・涼しさ・安全・熱中症回避を示すものではない。
+
+代表地点の最近傍セル値は [satellite-point-validation.md](./satellite-point-validation.md) に記録する。駅前、商業地、河川沿い、公園などを比較するが、画面色や周辺用途との一致は仮説確認にとどめ、現地実測による精度検証とは区別する。
+
+## 次工程の判断
+
+現段階で衛星値をルートスコアへ組み込まない。次に進める場合は、同一観測日の現地表面温度・気象値・建物影・街路樹／屋根情報を複数地点で取得し、観測時刻と空間解像度を揃えた上で、まず相関・誤差・NoData率を評価する。その結果が再現性を持つ場合のみ、参考情報から別の実験的指標へ昇格させる。

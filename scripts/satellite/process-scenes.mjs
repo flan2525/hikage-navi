@@ -95,7 +95,17 @@ function interpolateColor(stops, value) {
 function stats(values) {
   const sorted = [...values].sort((a, b) => a - b)
   const quantile = (ratio) => sorted[Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * ratio))]
-  return { min: sorted[0], max: sorted[sorted.length - 1], q05: quantile(.05), q50: quantile(.5), q95: quantile(.95) }
+  return { p02: quantile(.02), p10: quantile(.1), p25: quantile(.25), p50: quantile(.5), p75: quantile(.75), p90: quantile(.9), p98: quantile(.98), actualMin: sorted[0], actualMax: sorted[sorted.length - 1], displayMin: quantile(.02), displayMax: quantile(.98) }
+}
+
+async function writeNumericGrid(id, values, metadata) {
+  const filename = `${id}.bin`
+  const buffer = Buffer.alloc(values.length * 2)
+  for (let index = 0; index < values.length; index += 1) buffer.writeInt16LE(values[index], index * 2)
+  await writeFile(resolve(outputRoot, filename), buffer)
+  const fileStat = await stat(resolve(outputRoot, filename))
+  console.log(`${filename}: ${formatBytes(fileStat.size)} (${metadata.width}x${metadata.height})`)
+  return { dataUrl: `/data/satellite/${filename}`, bytes: fileStat.size, ...metadata }
 }
 
 async function writeImage(id, pixels, width, height) {
@@ -117,6 +127,8 @@ const lstRaster = await raster(resolve(landsatDir, landsatManifest.assets.lwir11
 const lstQa = await raster(resolve(landsatDir, landsatManifest.assets.qa_pixel.path), target.bounds)
 const lstSize = outputSize(target.bounds, 30)
 const lstPixels = new Uint8Array(lstSize.width * lstSize.height * 4)
+const lstGridValues = new Int16Array(lstSize.width * lstSize.height)
+lstGridValues.fill(-32768)
 const lstValues = []
 const lstStopsBase = [[0, rgba('#2e3a9b', 220)], [1, rgba('#278bc4', 220)], [2, rgba('#f1d45b', 225)], [3, rgba('#ef8a42', 230)], [4, rgba('#c73639', 235)]]
 for (let y = 0; y < lstSize.height; y += 1) for (let x = 0; x < lstSize.width; x += 1) {
@@ -129,10 +141,11 @@ for (let y = 0; y < lstSize.height; y += 1) for (let x = 0; x < lstSize.width; x
   if (invalid) { lstPixels[offset + 3] = 0; continue }
   const celsius = landsatSurfaceTemperatureCelsius(dn)
   lstValues.push(celsius)
+  lstGridValues[y * lstSize.width + x] = Math.max(-32767, Math.min(32767, Math.round(celsius * 10)))
   lstPixels.set([0, 0, 0, 255], offset)
 }
 const lstStats = stats(lstValues)
-const lstColorStops = [[lstStats.q05, '#2e3a9b'], [lstStats.q50, '#f1d45b'], [lstStats.q95, '#c73639']]
+const lstColorStops = [[lstStats.displayMin, '#2e3a9b'], [lstStats.p50, '#f1d45b'], [lstStats.displayMax, '#c73639']]
 for (let y = 0; y < lstSize.height; y += 1) for (let x = 0; x < lstSize.width; x += 1) {
   const lng = target.bounds[0] + (x + .5) / lstSize.width * (target.bounds[2] - target.bounds[0])
   const lat = target.bounds[3] - (y + .5) / lstSize.height * (target.bounds[3] - target.bounds[1])
@@ -140,14 +153,15 @@ for (let y = 0; y < lstSize.height; y += 1) for (let x = 0; x < lstSize.width; x
   const qa = sample(lstQa, lng, lat)
   if (!isLandsatQaValid(dn, qa)) continue
   const celsius = landsatSurfaceTemperatureCelsius(dn)
-  const lower = lstStats.q05
-  const upper = lstStats.q95
+  const lower = lstStats.displayMin
+  const upper = lstStats.displayMax
   const t = Math.max(0, Math.min(1, (celsius - lower) / Math.max(.001, upper - lower)))
   const mapped = interpolateColor(lstStopsBase, t * 4)
   const offset = (y * lstSize.width + x) * 4
   lstPixels.set(mapped, offset)
 }
 const lstImage = await writeImage(landsat.id, lstPixels, lstSize.width, lstSize.height)
+const lstNumericGrid = await writeNumericGrid(landsat.id, lstGridValues, { dataType: 'Int16', byteOrder: 'little-endian', scale: .1, offset: 0, noData: -32768, width: lstSize.width, height: lstSize.height, bounds: target.bounds, crs: 'EPSG:4326', rowOrder: 'north-to-south', cellSizeMeters: 30, nativeResolutionMeters: 100, displayResolutionMeters: 30, validPixelRatio: lstValues.length / (lstSize.width * lstSize.height) })
 
 const sentinel = config.selected.sentinel2
 const sentinelDir = resolve(rawRoot, sentinel.id)
@@ -157,6 +171,8 @@ const nirRaster = await raster(resolve(sentinelDir, sentinelManifest.assets.B08.
 const sclRaster = await raster(resolve(sentinelDir, sentinelManifest.assets.SCL.path), target.bounds)
 const ndviSize = outputSize(target.bounds, 10)
 const ndviPixels = new Uint8Array(ndviSize.width * ndviSize.height * 4)
+const ndviGridValues = new Int16Array(ndviSize.width * ndviSize.height)
+ndviGridValues.fill(-32768)
 const ndviValues = []
 const ndviStops = [[-1, rgba('#53636a', 35)], [0, rgba('#6c6b5e', 60)], [.2, rgba('#9c9b61', 145)], [.5, rgba('#55a66f', 220)], [.8, rgba('#1f8f58', 230)], [1, rgba('#0a633f', 235)]]
 for (let y = 0; y < ndviSize.height; y += 1) for (let x = 0; x < ndviSize.width; x += 1) {
@@ -167,10 +183,14 @@ for (let y = 0; y < ndviSize.height; y += 1) for (let x = 0; x < ndviSize.width;
   const value = ndviFromDigitalNumbers(sample(nirRaster, lng, lat), sample(redRaster, lng, lat))
   if (!isSentinelSclValid(scl) || value == null) { ndviPixels[offset + 3] = 0; continue }
   ndviValues.push(value)
+  ndviGridValues[y * ndviSize.width + x] = Math.max(-32767, Math.min(32767, Math.round(value * 10000)))
   ndviPixels.set(interpolateColor(ndviStops, value), offset)
 }
 const ndviStats = stats(ndviValues)
+ndviStats.displayMin = -1
+ndviStats.displayMax = 1
 const ndviImage = await writeImage(sentinel.id, ndviPixels, ndviSize.width, ndviSize.height)
+const ndviNumericGrid = await writeNumericGrid(sentinel.id, ndviGridValues, { dataType: 'Int16', byteOrder: 'little-endian', scale: .0001, offset: 0, noData: -32768, width: ndviSize.width, height: ndviSize.height, bounds: target.bounds, crs: 'EPSG:4326', rowOrder: 'north-to-south', cellSizeMeters: 10, nativeResolutionMeters: 10, displayResolutionMeters: 10, validPixelRatio: ndviValues.length / (ndviSize.width * ndviSize.height) })
 
 const landsatItemUrl = `${config.stacApi}/collections/${landsat.collection}/items/${landsat.item}`
 const sentinelItemUrl = `${config.stacApi}/collections/${sentinel.collection}/items/${sentinel.item}`
@@ -179,10 +199,10 @@ const metadata = {
   target: { bounds: target.bounds, sourceBounds: target.sourceBounds, marginMeters: target.marginMeters, pointCount: target.pointCount },
   layers: [
     {
-      id: landsat.id, type: 'land-surface-temperature', label: '地表面温度', observedAt: '2026-07-23T01:40:39.524309Z', source: 'USGS Landsat Collection 2 Level-2 via Microsoft Planetary Computer', satellite: 'Landsat 9', sensor: 'OLI-2 / TIRS', product: 'Collection 2 Level-2 Surface Temperature', bounds: target.bounds, resolutionMeters: 30, nativeResolutionMeters: 100, displayResolutionMeters: 30, cloudCover: 8.23, validPixelRatio: lstValues.length / (lstSize.width * lstSize.height), unit: '°C', min: lstStats.min, max: lstStats.max, colorStops: lstColorStops.map(([value, color]) => [value, color]), imageUrl: lstImage.imageUrl, previewUrl: lstImage.previewUrl, sourceUrl: landsatItemUrl, attribution: 'U.S. Geological Survey / NASA Landsat 9; processed from Collection 2 Level-2 ST_B10 and QA_PIXEL', license: 'USGS Landsat data policy / public domain', version: 'v1', limitations: ['地表面温度であり、現在の気温ではありません。', 'TIRSの元熱赤外観測は約100mで、表示画像は30mグリッドへ再配置しています。', '雲・雲影・雪・NoDataをQA_PIXELで除外しています。', '観測日時は2026-07-23 01:40 UTC（日本時間10:40頃）です。'], processing: { scale: 'ST_K = DN × 0.00341802 + 149.0; °C = K - 273.15', qaPixelInvalidBits: [0, 1, 2, 3, 4, 5], imageBytes: lstImage.imageBytes, previewBytes: lstImage.previewBytes, width: lstImage.width, height: lstImage.height }, rawAssets: landsatManifest.assets,
+      id: landsat.id, type: 'land-surface-temperature', label: '地表面温度', observedAt: '2026-07-23T01:40:39.524309Z', source: 'USGS Landsat Collection 2 Level-2 Surface Temperature', acquisitionPath: 'Microsoft Planetary Computer STAC / signed asset', processingSummary: 'ST_B10を摂氏へ変換し、QA_PIXELで無効画素を除外して数値グリッド・表示画像を生成', satellite: 'Landsat 9', sensor: 'OLI-2 / TIRS', product: 'Collection 2 Level-2 Surface Temperature（ST_B10）', bounds: target.bounds, resolutionMeters: 30, nativeResolutionMeters: 100, displayResolutionMeters: 30, cloudCover: 8.23, validPixelRatio: lstValues.length / (lstSize.width * lstSize.height), unit: '°C', min: lstStats.displayMin, max: lstStats.displayMax, colorStops: lstColorStops.map(([value, color]) => [value, color]), imageUrl: lstImage.imageUrl, previewUrl: lstImage.previewUrl, sourceUrl: landsatItemUrl, attribution: '原典: U.S. Geological Survey / NASA Landsat 9。取得経路: Microsoft Planetary Computer。アプリ側でST_B10とQA_PIXELを加工。', license: 'USGS Landsat data policy / public domain', version: 'v1', limitations: ['地表面温度であり、現在の気温ではありません。', 'TIRSの元熱赤外観測は約100mで、表示画像・数値グリッドは30mグリッドへ再配置しています。', '雲・雲影・雪・NoDataをQA_PIXELで除外しています。', '表示色は有効画素のp02〜p98へクリップしています。', '観測日時は2026-07-23 01:40 UTC（日本時間10:40頃）です。'], statistics: { p10: lstStats.p10, p25: lstStats.p25, p50: lstStats.p50, p75: lstStats.p75, p90: lstStats.p90, p98: lstStats.p98, actualMin: lstStats.actualMin, actualMax: lstStats.actualMax, displayMin: lstStats.displayMin, displayMax: lstStats.displayMax }, numericGrid: lstNumericGrid, processing: { scale: 'ST_K = DN × 0.00341802 + 149.0; °C = K - 273.15', qaPixelInvalidBits: [0, 1, 2, 3, 4, 5], imageBytes: lstImage.imageBytes, previewBytes: lstImage.previewBytes, width: lstImage.width, height: lstImage.height }, rawAssets: landsatManifest.assets,
     },
     {
-      id: sentinel.id, type: 'ndvi', label: '植生（NDVI）', observedAt: '2026-07-24T01:56:49.024Z', source: 'Copernicus Sentinel-2 Level-2A via Microsoft Planetary Computer', satellite: 'Sentinel-2B', sensor: 'MSI', product: 'Level-2A Surface Reflectance', bounds: target.bounds, resolutionMeters: 10, nativeResolutionMeters: 10, displayResolutionMeters: 10, cloudCover: 2.92, validPixelRatio: ndviValues.length / (ndviSize.width * ndviSize.height), unit: 'NDVI', min: ndviStats.min, max: ndviStats.max, colorStops: ndviStops.map(([value, color]) => [value, `rgba(${color[0]},${color[1]},${color[2]},${(color[3] / 255).toFixed(2)})`]), imageUrl: ndviImage.imageUrl, previewUrl: ndviImage.previewUrl, sourceUrl: sentinelItemUrl, attribution: 'Copernicus Sentinel data 2026, processed by European Space Agency / Microsoft Planetary Computer; B04, B08, SCL', license: 'Copernicus Sentinel Data Terms and Conditions', version: 'v1', limitations: ['植生・緑被の傾向を示すNDVIで、樹木一本の形状や正確な影ではありません。', 'B04/B08は10mグリッドで処理しています。', 'SCLの雲・雲影・NoData・欠損・飽和クラスを除外しています。', '観測日時は2026-07-24 01:56 UTC（日本時間10:56頃）です。'], processing: { formula: 'NDVI = (B08 - B04) / (B08 + B04)', reflectanceScale: 'reflectance = DN / 10000', maskedSclClasses: [0, 1, 3, 7, 8, 9, 10, 11], imageBytes: ndviImage.imageBytes, previewBytes: ndviImage.previewBytes, width: ndviImage.width, height: ndviImage.height }, rawAssets: sentinelManifest.assets,
+      id: sentinel.id, type: 'ndvi', label: '植生（NDVI）', observedAt: '2026-07-24T01:56:49.024Z', source: 'Copernicus Sentinel-2 Level-2A Surface Reflectance', acquisitionPath: 'Microsoft Planetary Computer STAC / signed asset', processingSummary: 'B04/B08を反射率へ変換し、SCLで無効画素を除外してNDVI数値グリッド・表示画像を生成', satellite: 'Sentinel-2B', sensor: 'MSI', product: 'Level-2A Surface Reflectance（B04 / B08 / SCL）', bounds: target.bounds, resolutionMeters: 10, nativeResolutionMeters: 10, displayResolutionMeters: 10, cloudCover: 2.92, validPixelRatio: ndviValues.length / (ndviSize.width * ndviSize.height), unit: 'NDVI', min: ndviStats.displayMin, max: ndviStats.displayMax, colorStops: ndviStops.map(([value, color]) => [value, `rgba(${color[0]},${color[1]},${color[2]},${(color[3] / 255).toFixed(2)})`]), imageUrl: ndviImage.imageUrl, previewUrl: ndviImage.previewUrl, sourceUrl: sentinelItemUrl, attribution: '原典: Copernicus Sentinel-2。取得経路: Microsoft Planetary Computer。アプリ側でB04/B08/SCLからNDVIを加工。', license: 'Copernicus Sentinel Data Terms and Conditions', version: 'v1', limitations: ['植生・緑被の傾向を示すNDVIで、樹木一本の形状や正確な影ではありません。', 'B04/B08は10mグリッドで処理しています。', 'SCLの雲・雲影・NoData・欠損・飽和クラスを除外しています。', '表示色はSentinel-2 NDVIの固定範囲-1〜1です。', '観測日時は2026-07-24 01:56 UTC（日本時間10:56頃）です。'], statistics: { p10: ndviStats.p10, p25: ndviStats.p25, p50: ndviStats.p50, p75: ndviStats.p75, p90: ndviStats.p90, p98: ndviStats.p98, actualMin: ndviStats.actualMin, actualMax: ndviStats.actualMax, displayMin: ndviStats.displayMin, displayMax: ndviStats.displayMax }, numericGrid: ndviNumericGrid, processing: { formula: 'NDVI = (B08 - B04) / (B08 + B04)', reflectanceScale: 'reflectance = DN / 10000', maskedSclClasses: [0, 1, 3, 7, 8, 9, 10, 11], imageBytes: ndviImage.imageBytes, previewBytes: ndviImage.previewBytes, width: ndviImage.width, height: ndviImage.height }, rawAssets: sentinelManifest.assets,
     },
   ],
 }

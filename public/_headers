@@ -10,6 +10,9 @@
 /data/satellite/*.webp
   Cache-Control: public, max-age=31536000, immutable
 
+/data/satellite/*.bin
+  Cache-Control: public, max-age=31536000, immutable
+
 /data/satellite/preview/*
   Cache-Control: public, max-age=31536000, immutable
 
